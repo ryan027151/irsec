@@ -1,0 +1,334 @@
+################################################################################
+# PHASE 2: CONTINUOUS OPERATIONS (Throughout Competition)
+################################################################################
+
+################################################################################
+# File: phase2_continuous/05_monitor.sh
+# Purpose: Continuous system monitoring - run in background
+# Usage: sudo ./05_monitor.sh &
+################################################################################
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root (sudo)"
+  exit 1
+fi
+
+LOGFILE="/root/monitor_$(date +%Y%m%d_%H%M%S).log"
+ALERT_FILE="/root/ALERTS.txt"
+BASELINE_USERS="/tmp/baseline_users.txt"
+BASELINE_CRON="/tmp/baseline_cron.txt"
+BASELINE_PROCS="/tmp/baseline_procs.txt"
+
+echo "========================================="
+echo "CONTINUOUS MONITORING STARTED"
+echo "Log file: $LOGFILE"
+echo "Alert file: $ALERT_FILE"
+echo "Press Ctrl+C to stop"
+echo "========================================="
+
+# Create baselines
+cat /etc/passwd > "$BASELINE_USERS"
+crontab -l 2>/dev/null > "$BASELINE_CRON"
+ps aux > "$BASELINE_PROCS"
+
+while true; do
+    echo "=== Monitor Check: $(date) ===" >> "$LOGFILE"
+    
+    # Check for new users
+    if ! diff -q /etc/passwd "$BASELINE_USERS" &>/dev/null; then
+        echo "[ALERT] $(date): USER CHANGE DETECTED" | tee -a "$ALERT_FILE"
+        diff /etc/passwd "$BASELINE_USERS" >> "$ALERT_FILE"
+        cat /etc/passwd > "$BASELINE_USERS"
+    fi
+    
+    # Check for cron changes
+    crontab -l 2>/dev/null > /tmp/current_cron.txt
+    if ! diff -q /tmp/current_cron.txt "$BASELINE_CRON" &>/dev/null; then
+        echo "[ALERT] $(date): CRON JOB CHANGE" | tee -a "$ALERT_FILE"
+        diff /tmp/current_cron.txt "$BASELINE_CRON" >> "$ALERT_FILE"
+        cp /tmp/current_cron.txt "$BASELINE_CRON"
+    fi
+    
+    # Check active connections
+    CONNECTIONS=$(ss -tupn 2>/dev/null | grep ESTAB | wc -l)
+    echo "Active connections: $CONNECTIONS" >> "$LOGFILE"
+    ss -tupn 2>/dev/null | grep ESTAB >> "$LOGFILE"
+    
+    # Check for suspicious processes
+    ps aux | grep -E 'nc|ncat|netcat|/bin/sh -i|/bin/bash -i|perl.*socket|python.*socket' | grep -v grep >> "$LOGFILE"
+    
+    # Check listening ports
+    echo "Listening ports:" >> "$LOGFILE"
+    ss -tulpn 2>/dev/null >> "$LOGFILE"
+    
+    # Check for unauthorized sudo usage
+    grep "sudo:" /var/log/auth.log 2>/dev/null | tail -5 >> "$LOGFILE"
+    
+    # Check disk usage (ransomware indicator)
+    DISK_USAGE=$(df / | tail -1 | awk '{print $5}' | sed 's/%//')
+    if [ $DISK_USAGE -gt 90 ]; then
+        echo "[ALERT] $(date): DISK USAGE HIGH: $DISK_USAGE%" | tee -a "$ALERT_FILE"
+    fi
+    
+    echo "---" >> "$LOGFILE"
+    
+    # Check if alert file has new content
+    if [ -f "$ALERT_FILE" ] && [ $(wc -l < "$ALERT_FILE") -gt 0 ]; then
+        echo -e "\n!!! CHECK $ALERT_FILE FOR ALERTS !!!\n"
+    fi
+    
+    sleep 60
+done
+
+################################################################################
+# File: phase2_continuous/06_threat_hunt.sh
+# Purpose: Active threat hunting - run periodically
+# Usage: sudo ./06_threat_hunt.sh
+################################################################################
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root (sudo)"
+  exit 1
+fi
+
+OUTPUT="threat_hunt_$(date +%Y%m%d_%H%M%S).txt"
+
+echo "========================================="
+echo "THREAT HUNTING - $(date)"
+echo "========================================="
+
+{
+echo "=== THREAT HUNT REPORT ==="
+echo "Date: $(date)"
+echo ""
+
+echo "=== SUSPICIOUS CRON JOBS ==="
+echo "Root crontab:"
+crontab -l 2>/dev/null
+echo ""
+echo "System crontab:"
+cat /etc/crontab
+echo ""
+echo "Cron directories:"
+for dir in /etc/cron.* ; do
+    echo "$dir:"
+    ls -la "$dir" 2>/dev/null
+done
+
+echo -e "\n=== SUSPICIOUS SCHEDULED TASKS (systemd) ==="
+systemctl list-timers --all
+
+echo -e "\n=== CHECKING FOR REVERSE SHELLS ==="
+ps aux | grep -E 'nc|ncat|netcat|/bin/sh -i|/bin/bash -i|perl.*socket|python.*socket|ruby.*socket' | grep -v grep
+
+echo -e "\n=== SUSPICIOUS NETWORK CONNECTIONS ==="
+echo "Established connections to unusual ports:"
+ss -tupn | grep ESTAB | grep -v ":22\|:80\|:443\|:53"
+
+echo -e "\n=== LISTENING ON UNUSUAL PORTS ==="
+ss -tulpn | grep LISTEN | grep -v ":22\|:80\|:443\|:53\|:3306\|:5432"
+
+echo -e "\n=== SUID BINARIES (potential privilege escalation) ==="
+find / -perm -4000 -type f 2>/dev/null | grep -v "/bin/\|/usr/bin/\|/sbin/\|/usr/sbin/"
+
+echo -e "\n=== SGID BINARIES ==="
+find / -perm -2000 -type f 2>/dev/null | grep -v "/bin/\|/usr/bin/\|/sbin/\|/usr/sbin/"
+
+echo -e "\n=== WORLD-WRITABLE FILES IN SYSTEM DIRECTORIES ==="
+find /etc /usr /bin /sbin -type f -perm -0002 2>/dev/null
+
+echo -e "\n=== RECENTLY MODIFIED FILES IN /etc (last 24 hours) ==="
+find /etc -type f -mtime -1 -ls 2>/dev/null
+
+echo -e "\n=== RECENTLY MODIFIED SUID/SGID FILES ==="
+find / -type f \( -perm -4000 -o -perm -2000 \) -mtime -7 -ls 2>/dev/null
+
+echo -e "\n=== HIDDEN FILES IN TEMP DIRECTORIES ==="
+find /tmp /var/tmp /dev/shm -name ".*" 2>/dev/null
+
+echo -e "\n=== SUSPICIOUS PROCESSES ==="
+ps aux --sort=-%cpu | head -20
+
+echo -e "\n=== PROCESSES RUNNING AS ROOT ==="
+ps aux | grep "^root" | grep -v "\[" | awk '{print $11}' | sort | uniq -c | sort -rn | head -20
+
+echo -e "\n=== CHECKING /tmp FOR EXECUTABLES ==="
+find /tmp /var/tmp /dev/shm -type f -executable -ls 2>/dev/null
+
+echo -e "\n=== CHECKING FOR BACKDOOR USERS ==="
+awk -F: '$3 == 0 {print $1 " has UID 0!"}' /etc/passwd
+grep ":0:" /etc/passwd
+
+echo -e "\n=== SSH AUTHORIZED KEYS ==="
+for home in /home/* /root; do
+    if [ -f "$home/.ssh/authorized_keys" ]; then
+        echo "=== $home/.ssh/authorized_keys ==="
+        cat "$home/.ssh/authorized_keys" 2>/dev/null
+        echo ""
+    fi
+done
+
+echo -e "\n=== BASH HISTORY (potential recon) ==="
+for home in /home/* /root; do
+    if [ -f "$home/.bash_history" ]; then
+        echo "=== $home/.bash_history (last 20 lines) ==="
+        tail -20 "$home/.bash_history" 2>/dev/null
+        echo ""
+    fi
+done
+
+echo -e "\n=== CHECKING FOR WEB SHELLS ==="
+if [ -d /var/www ]; then
+    echo "Checking /var/www for suspicious PHP files..."
+    find /var/www -name "*.php" -type f -exec grep -l "eval\|base64_decode\|system\|exec\|shell_exec\|passthru\|popen\|proc_open" {} \; 2>/dev/null
+fi
+
+if [ -d /usr/share/nginx ]; then
+    echo "Checking nginx directories..."
+    find /usr/share/nginx -name "*.php" -type f -exec grep -l "eval\|base64_decode\|system\|exec" {} \; 2>/dev/null
+fi
+
+echo -e "\n=== CHECKING FOR SUSPICIOUS APACHE/NGINX MODULES ==="
+if command -v apache2 &>/dev/null; then
+    apache2ctl -M 2>/dev/null
+elif command -v httpd &>/dev/null; then
+    httpd -M 2>/dev/null
+fi
+
+echo -e "\n=== KERNEL MODULES (potential rootkits) ==="
+lsmod | head -20
+
+echo -e "\n=== CHECKING /dev FOR SUSPICIOUS FILES ==="
+find /dev -type f 2>/dev/null
+
+echo -e "\n=== IMMUTABLE FILES (might be rootkit protection) ==="
+lsattr /bin/* /usr/bin/* /sbin/* /usr/sbin/* 2>/dev/null | grep "^....i"
+
+echo -e "\n=== CHECKING FOR STARTUP SCRIPTS ==="
+ls -la /etc/init.d/ 2>/dev/null
+ls -la /etc/rc*.d/ 2>/dev/null | grep -v "README"
+systemctl list-unit-files --type=service | grep enabled
+
+echo -e "\n=== CHECKING LD_PRELOAD (library injection) ==="
+cat /etc/ld.so.preload 2>/dev/null
+echo "Environment LD_PRELOAD:"
+env | grep LD_PRELOAD
+
+} | tee "$OUTPUT"
+
+echo "========================================="
+echo "THREAT HUNT COMPLETE"
+echo "Report saved to: $OUTPUT"
+echo "========================================="
+
+# Count findings
+WEB_SHELLS=$(grep -c "web shell\|eval\|base64_decode" "$OUTPUT" 2>/dev/null || echo "0")
+SUSPICIOUS_PROCS=$(grep -c "nc\|ncat\|netcat\|/bin/sh -i" "$OUTPUT" 2>/dev/null || echo "0")
+
+echo ""
+echo "=== SUMMARY ==="
+echo "Potential web shells: $WEB_SHELLS"
+echo "Suspicious processes: $SUSPICIOUS_PROCS"
+echo ""
+
+################################################################################
+# File: phase2_continuous/07_log_analyzer.sh
+# Purpose: Analyze logs for attack patterns
+# Usage: ./07_log_analyzer.sh [logfile]
+################################################################################
+#!/bin/bash
+
+LOGFILE="${1:-/var/log/auth.log}"
+
+if [ ! -f "$LOGFILE" ]; then
+    echo "Log file not found: $LOGFILE"
+    echo "Usage: $0 [logfile]"
+    exit 1
+fi
+
+echo "========================================="
+echo "LOG ANALYSIS - $(date)"
+echo "Analyzing: $LOGFILE"
+echo "========================================="
+
+OUTPUT="log_analysis_$(basename $LOGFILE)_$(date +%Y%m%d_%H%M%S).txt"
+
+{
+echo "=== LOG ANALYSIS REPORT ==="
+echo "File: $LOGFILE"
+echo "Date: $(date)"
+echo ""
+
+echo "=== FAILED LOGIN ATTEMPTS ==="
+grep -i "failed password" "$LOGFILE" | tail -50
+
+echo -e "\n=== FAILED LOGIN SUMMARY BY IP ==="
+grep -i "failed password" "$LOGFILE" | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | sort | uniq -c | sort -rn | head -20
+
+echo -e "\n=== SUCCESSFUL LOGINS ==="
+grep -i "accepted password\|accepted publickey" "$LOGFILE" | tail -30
+
+echo -e "\n=== ROOT LOGIN ATTEMPTS ==="
+grep -i "root" "$LOGFILE" | grep -i "failed\|accepted" | tail -30
+
+echo -e "\n=== SUDO USAGE ==="
+grep -i "sudo:" "$LOGFILE" | tail -30
+
+echo -e "\n=== USER CREATION/DELETION ==="
+grep -iE "useradd|userdel|adduser" "$LOGFILE"
+
+echo -e "\n=== PRIVILEGE ESCALATION ATTEMPTS ==="
+grep -i "su:" "$LOGFILE" | tail -20
+
+echo -e "\n=== SSH KEY USAGE ==="
+grep -i "publickey" "$LOGFILE" | tail -20
+
+echo -e "\n=== INVALID USERS ==="
+grep -i "invalid user" "$LOGFILE" | tail -30
+
+echo -e "\n=== BREAK-IN ATTEMPTS ==="
+grep -i "break-in attempt\|possible break-in" "$LOGFILE"
+
+echo -e "\n=== SESSION OPENED/CLOSED ==="
+grep -i "session opened\|session closed" "$LOGFILE" | tail -20
+
+} | tee "$OUTPUT"
+
+# Web log analysis (if Apache/Nginx logs exist)
+if [ -f /var/log/apache2/access.log ] || [ -f /var/log/nginx/access.log ]; then
+    echo -e "\n=== WEB LOG ANALYSIS ==="
+    
+    WEBLOG="/var/log/apache2/access.log"
+    [ -f /var/log/nginx/access.log ] && WEBLOG="/var/log/nginx/access.log"
+    
+    {
+    echo -e "\n=== TOP 20 IPs ==="
+    awk '{print $1}' "$WEBLOG" | sort | uniq -c | sort -rn | head -20
+    
+    echo -e "\n=== SQL INJECTION ATTEMPTS ==="
+    grep -iE "union.*select|concat.*\(|script.*>|<script|'; drop|' or '1'='1" "$WEBLOG" | tail -30
+    
+    echo -e "\n=== DIRECTORY TRAVERSAL ATTEMPTS ==="
+    grep -E "\.\./|\.\.%2[fF]" "$WEBLOG" | tail -20
+    
+    echo -e "\n=== SUSPICIOUS USER AGENTS ==="
+    grep -iE "nikto|nmap|sqlmap|burp|metasploit|nessus|masscan|acunetix" "$WEBLOG" | tail -20
+    
+    echo -e "\n=== FILE UPLOAD ATTEMPTS ==="
+    grep -iE "\.php|\.asp|\.jsp|\.cgi" "$WEBLOG" | grep POST | tail -20
+    
+    echo -e "\n=== 404 ERRORS (recon) ==="
+    awk '$9 == 404 {print $7}' "$WEBLOG" | sort | uniq -c | sort -rn | head -20
+    
+    echo -e "\n=== 500 ERRORS (exploitation?) ==="
+    awk '$9 ~ /^5/ {print $7}' "$WEBLOG" | sort | uniq -c | sort -rn | head -20
+    
+    } | tee -a "$OUTPUT"
+fi
+
+echo "========================================="
+echo "LOG ANALYSIS COMPLETE"
+echo "Report saved to: $OUTPUT"
+echo "========================================="
