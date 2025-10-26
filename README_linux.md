@@ -12,7 +12,9 @@ Watch for Attacks (Monitoring & Hunting): It runs continuous checks for new user
 Stop Attacks (Incident Response): If an attack happens, it has tools to record the details, capture important system files and data (evidence), and analyze logs for attack patterns.
 
 # On your prep laptop, create the toolkit
+```sh
 mkdir -p linux_toolkit/{phase1_initial,phase2_continuous,phase3_incident,service_specific,utilities}
+```
 
 # Copy all scripts into the appropriate folders
 # Then upload to BOTH machines:
@@ -40,7 +42,7 @@ sudo ./06_threat_hunt.sh       # Hunt for threats
 ```
 # Throughout competition #
 ```sh
- ** Run threat hunt every 30 minutes **
+#Run threat hunt every 30 minutes
 sudo ./06_threat_hunt.sh
 
  ** If an incident happens: **
