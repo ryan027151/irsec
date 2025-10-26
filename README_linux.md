@@ -21,14 +21,14 @@ scp -r linux_toolkit/ root@fedora-server:/root/
 scp -r linux_toolkit/ root@ubuntu-wazuh:/root/
 
 ## Fedora in first 5 min ##
-'''sh
+'
 cd /root/toolkit/phase1_initial
 sudo ./01_enum.sh              # Know your system
 sudo ./02_quick_harden.sh      # Lock it down
 sudo ./03_rotate_passwords.sh  # Change passwords
 sudo ./04_user_audit.sh        # Check users
-'''
-'''sh
+'
+'
 # after initially securing the network #
 cd /root/toolkit/service_specific
 sudo ./12_harden_mysql.sh      # Secure MySQL
@@ -36,14 +36,14 @@ sudo ./12_harden_mysql.sh      # Secure MySQL
 cd /root/toolkit/phase2_continuous
 sudo ./05_monitor.sh &         # Start monitoring in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
-'''
+'
 # Throughout competition #
-'''sh
+'
 # Run threat hunt every 30 minutes
 sudo ./06_threat_hunt.sh
-'''
-'''sh
+'
+'
 # If an incident happens:
 cd /root/toolkit/phase3_incident
 sudo ./08_log_incident.sh
-'''
+'
