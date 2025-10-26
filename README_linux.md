@@ -3,13 +3,13 @@ The script is a set of tools to find problems, fix them fast, and watch for atta
 
 Broken Down by Main Goal:
 
-Find Problems (Enumeration & Audit): It quickly checks the system's setup, users, network connections, and hidden files to find weak spots or signs of a previous attack.
+1. Find Problems (Enumeration & Audit): It quickly checks the system's setup, users, network connections, and hidden files to find weak spots or signs of a previous attack.
 
-Fix Problems (Hardening & Passwords): It immediately secures the system by setting up a firewall, strengthening the SSH login settings, and changing all user passwords to a single secure one.
+2. Fix Problems (Hardening & Passwords): It immediately secures the system by setting up a firewall, strengthening the SSH login settings, and changing all user passwords to a single secure one.
 
-Watch for Attacks (Monitoring & Hunting): It runs continuous checks for new users, changed tasks (cron jobs), and suspicious programs, and regularly hunts for signs of malicious activity like web shells or reverse shells.
+3. Watch for Attacks (Monitoring & Hunting): It runs continuous checks for new users, changed tasks (cron jobs), and suspicious programs, and regularly hunts for signs of malicious activity like web shells or reverse shells.
 
-Stop Attacks (Incident Response): If an attack happens, it has tools to record the details, capture important system files and data (evidence), and analyze logs for attack patterns.
+4. Stop Attacks (Incident Response): If an attack happens, it has tools to record the details, capture important system files and data (evidence), and analyze logs for attack patterns.
 
 # On your prep laptop, create the toolkit
 ```sh
