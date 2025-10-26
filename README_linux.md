@@ -36,10 +36,10 @@ sudo ./05_monitor.sh &         # Start monitoring in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
 
 # Throughout competition #
-# Run threat hunt every 30 minutes
+ ** Run threat hunt every 30 minutes **
 sudo ./06_threat_hunt.sh
 
-# If an incident happens:
+ ** If an incident happens: **
 cd /root/toolkit/phase3_incident
 sudo ./08_log_incident.sh
 
