@@ -116,9 +116,64 @@ Fedora Server                Ubuntu Wazuh Server
 └── utilities/               └── utilities/
 ```
 ___
-**To make Wasuh automattcially activate script**
-```sh
+**Step 1: To make Wasuh automattcially activate script**
+```bash
 # Make the wazuh script executable
 chmod 750 /var/ossec/active-response/bin/auto_threat_hunt.sh
 chown root:wazuh /var/ossec/active-response/bin/auto_threat_hunt.sh
+```
+**Step 2: Configure Wazuh to Use Your Scripts**
+Edit Wazuh manager configuration on Ubuntu Wazuh server:
+```bash
+sudo nano /var/ossec/etc/ossec.conf
+```
+```
+#Add this configuration:
+<ossec_config>
+  <!-- Define the active response command -->
+  <command>
+    <name>auto-threat-hunt</name>
+    <executable>auto_threat_hunt.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+
+  <command>
+    <name>auto-capture-evidence</name>
+    <executable>auto_capture_evidence.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+
+  <command>
+    <name>auto-block-backdoor</name>
+    <executable>auto_block_backdoor.sh</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
+  <!-- Trigger threat hunt on suspicious activity -->
+  <active-response>
+    <command>auto-threat-hunt</command>
+    <location>local</location>
+    <rules_id>5710,5712</rules_id> <!-- SSH authentication failed, brute force -->
+  </active-response>
+
+  <active-response>
+    <command>auto-threat-hunt</command>
+    <location>local</location>
+    <level>12</level> <!-- High severity alerts -->
+  </active-response>
+
+  <!-- Capture evidence on critical alerts -->
+  <active-response>
+    <command>auto-capture-evidence</command>
+    <location>local</location>
+    <level>15</level> <!-- Critical alerts -->
+  </active-response>
+
+  <!-- Auto-block on web shell detection -->
+  <active-response>
+    <command>auto-block-backdoor</command>
+    <location>local</location>
+    <rules_id>31153,31154</rules_id> <!-- Web shell detection rules -->
+  </active-response>
+</ossec_config>
 ```
