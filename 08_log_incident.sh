@@ -1,5 +1,4 @@
 
-```bash
 #!/bin/bash
 
 INCIDENT_LOG="/root/incidents.txt"
@@ -89,4 +88,4 @@ echo "Incident logged to:"
 echo "  - $INCIDENT_FILE"
 echo "  - $INCIDENT_LOG"
 echo ""
-```
+
