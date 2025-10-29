@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -144,4 +144,4 @@ echo "========================================="
 echo "QUICK HARDENING COMPLETE"
 echo "Backups stored in: $BACKUP_DIR"
 echo "========================================="
-```
+
