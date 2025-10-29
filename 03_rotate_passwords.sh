@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -48,4 +48,4 @@ echo "**********************************"
 echo "NEW PASSWORD: $NEW_PASSWORD"
 echo "**********************************"
 echo ""
-```
+
