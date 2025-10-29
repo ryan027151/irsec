@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 OUTPUT="FINAL_INCIDENT_REPORT_$(date +%Y%m%d_%H%M%S).md"
@@ -359,4 +359,3 @@ echo ""
 echo "Edit this template and fill in all sections"
 echo "during and after the competition."
 echo ""
-```
