@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -144,4 +144,4 @@ echo "=== SUMMARY ==="
 echo "Potential web shells: $WEB_SHELLS"
 echo "Suspicious processes: $SUSPICIOUS_PROCS"
 echo ""
-```
+
