@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -108,4 +108,3 @@ echo "EVIDENCE COLLECTION COMPLETE"
 echo "Directory: $EVIDENCE_DIR"
 echo "Archive: ${EVIDENCE_DIR}.tar.gz"
 echo "========================================="
-```
