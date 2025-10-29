@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 LOGFILE="${1:-/var/log/auth.log}"
@@ -93,4 +93,4 @@ echo "========================================="
 echo "LOG ANALYSIS COMPLETE"
 echo "Report saved to: $OUTPUT"
 echo "========================================="
-```
+
