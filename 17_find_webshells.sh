@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 SCAN_DIR="${1:-/var/www}"
@@ -78,4 +78,3 @@ echo "========================================="
 echo "SCAN COMPLETE"
 echo "Report saved to: $OUTPUT"
 echo "========================================="
-```
