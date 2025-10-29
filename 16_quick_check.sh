@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 echo "========================================="
@@ -47,4 +47,3 @@ echo -e "\n[Listening Ports]"
 ss -tulpn 2>/dev/null | grep LISTEN | awk '{print $5}' | sort -u || netstat -tulpn 2>/dev/null | grep LISTEN | awk '{print $4}' | sort -u
 
 echo "========================================="
-```
