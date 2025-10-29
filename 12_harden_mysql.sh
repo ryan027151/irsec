@@ -1,5 +1,4 @@
 
-```bash
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -103,4 +102,3 @@ echo "========================================="
 echo "MYSQL HARDENING COMPLETE"
 echo "New root password: $NEW_PASS"
 echo "========================================="
-```
