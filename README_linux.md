@@ -25,11 +25,10 @@ git clone https://github.com/ryan027151/irsec.git
 
 ## Fedora in first 5 min ##
 ```sh
-cd /root/toolkit/phase1_initial
-sudo ./01_enum.sh              # Know your system
-sudo ./02_quick_harden.sh      # Lock it down
-sudo ./03_rotate_passwords.sh  # Change passwords
-sudo ./04_user_audit.sh        # Check users
+sudo 01_enum.sh              # Know your system
+sudo 02_quick_harden.sh      # Lock it down
+sudo 03_rotate_passwords.sh  # Change passwords
+sudo 04_user_audit.sh        # Check users
 ```
 # After initially securing the network #
 ```sh
