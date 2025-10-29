@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -104,4 +104,4 @@ echo -e "\n=== BACKDOOR REMOVAL COMPLETE ==="
 } | tee "$LOG"
 
 echo "Log saved to: $LOG"
-```
+
