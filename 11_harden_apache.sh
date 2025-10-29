@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -123,4 +123,3 @@ fi
 echo "========================================="
 echo "APACHE HARDENING COMPLETE"
 echo "========================================="
-```
