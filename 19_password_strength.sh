@@ -1,4 +1,4 @@
-```bash
+
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -47,4 +47,3 @@ echo "========================================="
 echo "TIP: Ensure all passwords are at least 12 characters"
 echo "with uppercase, lowercase, numbers, and symbols"
 echo "========================================="
-```
