@@ -11,7 +11,7 @@ echo "PASSWORD ROTATION - $(date)"
 echo "========================================="
 
 # IMPORTANT: Change this to your competition password
-NEW_PASSWORD="Comp3titi0n!P@ssw0rd2024"
+NEW_PASSWORD="testingpwd"
 
 # Get list of human users (UID >= 1000, has shell)
 USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" {print $1}' /etc/passwd)
