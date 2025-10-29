@@ -1,4 +1,3 @@
-```bash
 #!/bin/bash
 
 echo "==================================="
@@ -128,4 +127,4 @@ grep "Failed password" /var/log/secure 2>/dev/null | tail -20
 
 echo "Enumeration complete! Results saved to: $OUTPUT"
 cat "$OUTPUT" | less
-```
+
