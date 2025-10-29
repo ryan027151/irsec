@@ -13,14 +13,14 @@ Broken Down by Main Goal:
 
 # On your prep laptop, create the toolkit
 ```sh
-mkdir -p linux_toolkit/{phase1_initial,phase2_continuous,phase3_incident,service_specific,utilities}
+mkdir linux_toolkit
 ```
 
 **Copy all scripts into the appropriate folders**
 # Upload to BOTH machines:
 ```sh
-scp -r linux_toolkit/ root@fedora-server:/root/
-scp -r linux_toolkit/ root@ubuntu-wazuh:/root/
+cd linux_toolkit
+git clone https://github.com/ryan027151/irsec.git
 ```
 
 ## Fedora in first 5 min ##
