@@ -37,7 +37,7 @@ sudo ./04_user_audit.sh        # Check users
 sudo ./12_harden_mysql.sh      # Secure MySQL
 
 #chmod -x each file before running it
-sudo ./05_monitor.sh &         # Start monitoring in background
+sudo ./05_monitor.sh &         # Start monitoring in background and type bg to keep it run in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
 ```
 # Throughout competition #
@@ -70,7 +70,7 @@ sudo ./04_user_audit.sh        # Check users
 # After initially securing the network #
 ```sh
 #chmod -x each file before running it
-sudo ./05_monitor.sh &         # Start monitoring in background
+sudo ./05_monitor.sh &         # Start monitoring in background and type bg to keep it run in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
 
 # Also secure Wazuh itself:
