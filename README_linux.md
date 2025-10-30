@@ -25,17 +25,18 @@ git clone https://github.com/ryan027151/irsec.git
 
 ## Fedora in first 5 min ##
 ```sh
-sudo 01_enum.sh              # Know your system
-sudo 02_quick_harden.sh      # Lock it down
-sudo 03_rotate_passwords.sh  # Change passwords
-sudo 04_user_audit.sh        # Check users
+#chmod -x each file before running it
+sudo ./01_enum.sh              # Know your system
+sudo ./02_quick_harden.sh      # Lock it down
+sudo ./03_rotate_passwords.sh  # Change passwords
+sudo ./04_user_audit.sh        # Check users
 ```
 # After initially securing the network #
 ```sh
-cd /root/toolkit/service_specific
+#chmod -x each file before running it
 sudo ./12_harden_mysql.sh      # Secure MySQL
 
-cd /root/toolkit/phase2_continuous
+#chmod -x each file before running it
 sudo ./05_monitor.sh &         # Start monitoring in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
 ```
@@ -51,7 +52,7 @@ sudo ./08_log_incident.sh
 ___
 ## Ubantu in first 5 min ##
 ```sh
-cd /root/toolkit/phase1_initial
+#chmod -x each file before running it
 sudo ./01_enum.sh              # Know your system
 sudo ./02_quick_harden.sh      # Lock it down
 sudo ./03_rotate_passwords.sh  # Change passwords
@@ -59,7 +60,7 @@ sudo ./04_user_audit.sh        # Check users
 ```
 # After initially securing the network #
 ```sh
-cd /root/toolkit/phase2_continuous
+#chmod -x each file before running it
 sudo ./05_monitor.sh &         # Start monitoring in background
 sudo ./06_threat_hunt.sh       # Hunt for threats
 
