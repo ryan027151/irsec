@@ -52,7 +52,16 @@ sudo ./08_log_incident.sh
 ___
 ## Ubantu in first 5 min ##
 ```sh
+#start ssh
+sudo systemctl status ssh
+
+sudo systemctl start ssh
+sudo systemctl enable ssh
+
+sudo ss -tlnp | grep :22
 #chmod -x each file before running it
+sudo systemctl enable auditd
+sudo systemctl start auditd
 sudo ./01_enum.sh              # Know your system
 sudo ./02_quick_harden.sh      # Lock it down
 sudo ./03_rotate_passwords.sh  # Change passwords
