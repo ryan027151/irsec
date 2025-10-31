@@ -3,6 +3,7 @@
 
 echo "========================================="
 echo "USER AUDIT - $(date)"
+echo "$(date) $(basename "$0") - User audit script started" >> /root/activity_log.txt
 echo "========================================="
 
 # CRITICAL: Edit this list with YOUR authorized users

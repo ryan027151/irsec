@@ -2,6 +2,7 @@
 
 echo "==================================="
 echo "SYSTEM ENUMERATION - $(date)"
+echo "$(date) $(basename "$0") - System enumeration started" >> /root/activity_log.txt
 echo "==================================="
 
 OUTPUT="enum_$(hostname)_$(date +%Y%m%d_%H%M%S).txt"

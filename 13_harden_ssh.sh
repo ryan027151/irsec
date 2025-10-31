@@ -8,6 +8,7 @@ fi
 
 echo "========================================="
 echo "SSH HARDENING - $(date)"
+echo "$(date) $(basename "$0") - SSH hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 SSHD_CONFIG="/etc/ssh/sshd_config"
@@ -45,6 +46,7 @@ set_config "TCPKeepAlive" "no"
 set_config "AllowTcpForwarding" "no"
 set_config "AllowAgentForwarding" "no"
 set_config "PermitUserEnvironment" "no"
+echo "$(date) $(basename \"$0\") - Applied hardening settings to $SSHD_CONFIG" >> /root/activity_log.txt
 
 # Strong ciphers and MACs
 if ! grep -q "^Ciphers" "$SSHD_CONFIG"; then
@@ -55,6 +57,7 @@ Ciphers aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes1
 MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
 KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
 EOF
+    echo "$(date) $(basename \"$0\") - Added strong ciphers, MACs, and KexAlgorithms to $SSHD_CONFIG" >> /root/activity_log.txt
 fi
 
 # Test configuration
@@ -70,9 +73,11 @@ fi
 read -p "Restart SSH now? (y/N): " restart
 if [ "$restart" == "y" ]; then
     systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null
+    echo "$(date) $(basename \"$0\") - Restarted SSH service" >> /root/activity_log.txt
     echo "[+] SSH restarted"
 fi
 
 echo "========================================="
+echo "$(date) $(basename "$0") - SSH hardening script finished" >> /root/activity_log.txt
 echo "SSH HARDENING COMPLETE"
 echo "========================================="

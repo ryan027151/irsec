@@ -3,6 +3,7 @@
 
 echo "========================================="
 echo "NETWORK CONNECTION MONITOR"
+echo "$(date) $(basename "$0") - Network connection monitor script started" >> /root/activity_log.txt
 echo "Press Ctrl+C to stop"
 echo "========================================="
 

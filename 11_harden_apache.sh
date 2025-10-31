@@ -13,6 +13,7 @@ fi
 
 echo "========================================="
 echo "APACHE HARDENING - $(date)"
+echo "$(date) $(basename "$0") - Apache hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 # Determine Apache binary and config
@@ -39,6 +40,7 @@ echo "[+] Removing default pages..."
 rm -f /var/www/html/index.html 2>/dev/null
 rm -f /var/www/html/index.nginx-debian.html 2>/dev/null
 echo "Apache2 Secured" > /var/www/html/index.html
+echo "$(date) $(basename \"$0\") - Removed default Apache page and created placeholder" >> /root/activity_log.txt
 
 # Create security.conf
 SECURITY_CONF="$APACHE_DIR/conf-available/security-custom.conf"
@@ -86,6 +88,7 @@ EOF
     # Enable the configuration
     if command -v a2enconf &>/dev/null; then
         a2enconf security-custom
+        echo "$(date) $(basename \"$0\") - Created and enabled custom Apache security configuration" >> /root/activity_log.txt
     fi
 fi
 
@@ -94,12 +97,14 @@ echo "[+] Setting secure file permissions..."
 find /var/www -type d -exec chmod 755 {} \;
 find /var/www -type f -exec chmod 644 {} \;
 chown -R www-data:www-data /var/www 2>/dev/null || chown -R apache:apache /var/www 2>/dev/null
+echo "$(date) $(basename \"$0\") - Set secure permissions on /var/www" >> /root/activity_log.txt
 
 # Disable unnecessary modules
 echo "[+] Disabling unnecessary modules..."
 DISABLE_MODS="autoindex status userdir"
 for mod in $DISABLE_MODS; do
     a2dismod $mod 2>/dev/null
+    echo "$(date) $(basename \"$0\") - Disabled unnecessary Apache module: $mod" >> /root/activity_log.txt
 done
 
 # Enable security modules
@@ -107,6 +112,7 @@ echo "[+] Enabling security modules..."
 ENABLE_MODS="headers rewrite ssl"
 for mod in $ENABLE_MODS; do
     a2enmod $mod 2>/dev/null
+    echo "$(date) $(basename \"$0\") - Enabled security Apache module: $mod" >> /root/activity_log.txt
 done
 
 # Test configuration
@@ -117,9 +123,11 @@ $APACHE_BIN -t
 read -p "Restart Apache now? (y/N): " restart
 if [ "$restart" == "y" ]; then
     systemctl restart apache2 2>/dev/null || systemctl restart httpd 2>/dev/null
+    echo "$(date) $(basename \"$0\") - Restarted Apache service" >> /root/activity_log.txt
     echo "[+] Apache restarted"
 fi
 
 echo "========================================="
+echo "$(date) $(basename "$0") - Apache hardening script finished" >> /root/activity_log.txt
 echo "APACHE HARDENING COMPLETE"
 echo "========================================="

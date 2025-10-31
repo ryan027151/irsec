@@ -12,6 +12,7 @@ fi
 
 echo "========================================="
 echo "PASSWORD ROTATION - $(date)"
+echo "$(date) $(basename "$0") - Password rotation script started for all users" >> /root/activity_log.txt
 echo "========================================="
 
 # Get list of human users (UID >= 1000, has shell)
@@ -29,6 +30,7 @@ for user in $USERS; do
     if [ $? -eq 0 ]; then
         echo -e "[+] Password changed for $user: ${GREEN}$NEW_PASSWORD${NC}"
         echo "$user: $NEW_PASSWORD" >> /root/password_changes.log
+        echo "$(date) $(basename \"$0\") - Rotated password for user: $user" >> /root/activity_log.txt
     else
         echo "[!] Failed to change password for: $user"
     fi
@@ -40,6 +42,7 @@ echo "root:$ROOT_PASSWORD" | chpasswd
 if [ $? -eq 0 ]; then
     echo -e "[+] Root password changed: ${GREEN}$ROOT_PASSWORD${NC}"
     echo "root: $ROOT_PASSWORD" >> /root/password_changes.log
+    echo "$(date) $(basename \"$0\") - Rotated password for user: root" >> /root/activity_log.txt
 else
     echo "[!] Failed to change root password"
 fi

@@ -3,6 +3,7 @@
 
 echo "========================================="
 echo "QUICK SECURITY CHECK - $(date)"
+echo "$(date) $(basename "$0") - Quick security check script started" >> /root/activity_log.txt
 echo "========================================="
 
 # Check firewall

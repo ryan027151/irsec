@@ -12,6 +12,7 @@ ALERT_LEVEL=$(echo $INPUT_JSON | jq -r '.parameters.alert.rule.level')
 
 # Log the trigger
 echo "$(date): Wazuh triggered threat hunt - Alert: $ALERT_ID Level: $ALERT_LEVEL" >> /var/ossec/logs/active-responses.log
+echo "$(date) $(basename "$0") - Wazuh triggered auto threat hunt (Alert: $ALERT_ID, Level: $ALERT_LEVEL)" >> /root/activity_log.txt
 
 # Run threat hunting script
 cd $SCRIPT_DIR/phase2_continuous

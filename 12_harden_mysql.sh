@@ -8,6 +8,7 @@ fi
 
 echo "========================================="
 echo "MYSQL/MARIADB HARDENING - $(date)"
+echo "$(date) $(basename "$0") - MySQL/MariaDB hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 # Check if MySQL is installed
@@ -56,6 +57,7 @@ SELECT User, Host FROM mysql.user;
 EOF
 
 echo "[+] MySQL security hardening applied"
+echo "$(date) $(basename \"$0\") - Applied MySQL security hardening SQL commands (removed anonymous users, remote root, test DB)" >> /root/activity_log.txt
 
 # Secure my.cnf
 echo "[+] Hardening MySQL configuration file..."
@@ -87,18 +89,22 @@ EOF
 fi
 
 echo "[+] MySQL configuration hardened"
+echo "$(date) $(basename \"$0\") - Hardened MySQL configuration file ($MY_CNF)" >> /root/activity_log.txt
 
 # Set secure file permissions
 chmod 644 "$MY_CNF"
+echo "$(date) $(basename \"$0\") - Set permissions on $MY_CNF to 644" >> /root/activity_log.txt
 
 # Restart MySQL
 read -p "Restart MySQL now? (y/N): " restart
 if [ "$restart" == "y" ]; then
     systemctl restart mysql 2>/dev/null || systemctl restart mariadb 2>/dev/null
+    echo "$(date) $(basename \"$0\") - Restarted MySQL/MariaDB service" >> /root/activity_log.txt
     echo "[+] MySQL restarted"
 fi
 
 echo "========================================="
+echo "$(date) $(basename "$0") - MySQL/MariaDB hardening script finished" >> /root/activity_log.txt
 echo "MYSQL HARDENING COMPLETE"
 echo "New root password: $NEW_PASS"
 echo "========================================="
