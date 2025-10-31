@@ -1,6 +1,3 @@
-# CCDC Windows Security Toolkit
-
-Comprehensive PowerShell-based security incident response and monitoring toolkit for CCDC competitions.
 
 - [Overview](#overview)
 - [Features](#features)
