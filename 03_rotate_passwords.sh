@@ -1,6 +1,10 @@
 
 #!/bin/bash
 
+# Colors for output
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root (sudo)"
   exit 1
@@ -10,42 +14,38 @@ echo "========================================="
 echo "PASSWORD ROTATION - $(date)"
 echo "========================================="
 
-# IMPORTANT: Change this to your competition password
-NEW_PASSWORD="testingpwd"
-
 # Get list of human users (UID >= 1000, has shell)
 USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" {print $1}' /etc/passwd)
 
+# Clear previous log file
+> /root/password_changes.log
+echo "Password Rotation Log - $(date)" >> /root/password_changes.log
+echo "=========================================" >> /root/password_changes.log
+
 echo "Rotating passwords for users..."
 for user in $USERS; do
+    NEW_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
     echo "$user:$NEW_PASSWORD" | chpasswd
     if [ $? -eq 0 ]; then
-        echo "[+] Password changed for: $user"
+        echo -e "[+] Password changed for $user: ${GREEN}$NEW_PASSWORD${NC}"
+        echo "$user: $NEW_PASSWORD" >> /root/password_changes.log
     else
         echo "[!] Failed to change password for: $user"
     fi
 done
 
 # Change root password
-echo "root:$NEW_PASSWORD" | chpasswd
+ROOT_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
+echo "root:$ROOT_PASSWORD" | chpasswd
 if [ $? -eq 0 ]; then
-    echo "[+] Root password changed"
+    echo -e "[+] Root password changed: ${GREEN}$ROOT_PASSWORD${NC}"
+    echo "root: $ROOT_PASSWORD" >> /root/password_changes.log
 else
     echo "[!] Failed to change root password"
 fi
 
-# Log password changes
-echo "$(date): Passwords rotated for all users" >> /root/password_changes.log
-
 echo "========================================="
 echo "PASSWORD ROTATION COMPLETE"
-echo "New password: $NEW_PASSWORD"
-echo "SAVE THIS SECURELY AND SHARE WITH TEAM"
+echo "New passwords have been logged to /root/password_changes.log"
 echo "========================================="
-
-echo ""
-echo "**********************************"
-echo "NEW PASSWORD: $NEW_PASSWORD"
-echo "**********************************"
-echo ""
 
