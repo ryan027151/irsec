@@ -1,15 +1,3 @@
-================================================================================
-CCDC TOOLKIT - QUICK PATCH NOTES & RECOVERY GUIDE
-================================================================================
-Team: [YOUR TEAM NAME]
-Team Number: [YOUR TEAM NUMBER]
-Document Version: 1.0
-Last Updated: Competition Day
-
-================================================================================
-EMERGENCY RECOVERY PROCEDURES
-================================================================================
-
 IF SCORING IS DOWN:
 -------------------
 1. Check firewall isn't blocking scoring engine:
@@ -120,10 +108,6 @@ RESTORE SERVICE CONFIGURATION:
    
 3. Start service:
    Start-Service -Name "ServiceName"
-
-================================================================================
-CONFIGURATION RESTORE
-================================================================================
 
 RESTORE config.ps1 (if modified by red team):
 ----------------------------------------------
@@ -379,62 +363,9 @@ Scripts:
 Password Files:
 ---------------
 - Password resets: C:\CCDC-Logs\PasswordReset_*.txt
-- ⚠️ DELETE after distributing passwords!
 
 Reports:
 --------
 - User audit: C:\CCDC-Logs\UserAudit_*.html
 - Network snapshots: C:\CCDC-Logs\NetworkSnapshots_*\
 - Startup integrity: C:\CCDC-Logs\StartupIntegrity_*.csv
-
-================================================================================
-NOTES SECTION (FILL IN DURING COMPETITION)
-================================================================================
-
-Timeline of Events:
--------------------
-[HH:MM] - [EVENT DESCRIPTION]
-[HH:MM] - [EVENT DESCRIPTION]
-[HH:MM] - [EVENT DESCRIPTION]
-
-Known Issues:
--------------
-- [ISSUE 1]
-- [ISSUE 2]
-- [ISSUE 3]
-
-Red Team Activity Observed:
-----------------------------
-- [ATTACK 1]
-- [ATTACK 2]
-- [ATTACK 3]
-
-Configuration Changes Made:
----------------------------
-- [CHANGE 1]
-- [CHANGE 2]
-- [CHANGE 3]
-
-Items to Monitor:
------------------
-- [ITEM 1]
-- [ITEM 2]
-- [ITEM 3]
-
-================================================================================
-END OF QUICK PATCH NOTES
-================================================================================
-
-Last Updated: [DATE/TIME]
-Updated By: [NAME]
-
-Remember:
-- Keep calm
-- Document everything
-- Communicate with team
-- Ask white team for help when needed
-- Focus on keeping services up for scoring
-
-Good luck!
-
-================================================================================
