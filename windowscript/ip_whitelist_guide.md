@@ -1,9 +1,4 @@
-# Windows Firewall: IP Whitelisting Guide
-## CCDC Competition - Allowing Specific IPs
 
----
-
-## Table of Contents
 1. [Overview](#overview)
 2. [Before You Begin](#before-you-begin)
 3. [Method 1: PowerShell (Recommended)](#method-1-powershell-recommended)
@@ -13,24 +8,13 @@
 7. [Common Scenarios](#common-scenarios)
 8. [Troubleshooting](#troubleshooting)
 
----
 
-## Overview
-
-This guide explains how to whitelist specific IP addresses in Windows Firewall to ensure:
-- Scoring engine can reach your services
-- White team has administrative access
-- Team members can connect
-- Red team attacks are blocked
-
-### Key Concepts
 
 **Whitelist** = Allow specific IPs through firewall
 **Default Deny** = Block all other traffic
 
 ---
 
-## Before You Begin
 
 ### Critical IPs to Whitelist
 
@@ -41,7 +25,6 @@ This guide explains how to whitelist specific IP addresses in Windows Firewall t
 | Team Network | 10.X.0.0/16 | Your infrastructure |
 | Backup/Monitoring | 192.168.100.50 | Internal services |
 
-**⚠️ WARNING**: Never block White Team or Scoring Engine IPs!
 
 ### What You'll Need
 
@@ -51,7 +34,6 @@ This guide explains how to whitelist specific IP addresses in Windows Firewall t
 
 ---
 
-## Method 1: PowerShell (Recommended)
 
 ### Step 1: Open PowerShell as Administrator
 
@@ -470,10 +452,7 @@ New-NetFirewallRule -DisplayName "Whitelist-EntireSubnet" `
 ```
 
 ---
-
-## Best Practices
-
-### ✅ DO:
+Do:
 - Whitelist scoring engine and white team IPs immediately
 - Use descriptive rule names (`Whitelist-ScoringEngine` not `Rule1`)
 - Test connections after creating rules
@@ -483,7 +462,7 @@ New-NetFirewallRule -DisplayName "Whitelist-EntireSubnet" `
   Get-NetFirewallRule | Export-Clixml firewall-backup.xml
   ```
 
-### ❌ DON'T:
+Don't:
 - Block scoring engine or white team IPs
 - Use overly broad rules (0.0.0.0/0)
 - Forget to enable logging
