@@ -539,26 +539,3 @@ Get-NetTCPConnection -State Established | Select LocalPort, RemoteAddress, Remot
 # Kill suspicious process
 Stop-Process -Id <PID> -Force
 ```
-
----
-
-## 📄 License & Support
-
-This toolkit is designed for CCDC competitions. Use responsibly and only on authorized systems.
-
-For issues or contributions, please submit via your team's repository.
-
-**⚠️ IMPORTANT**: Always test scripts in a non-production environment first!
-
----
-
-## 🎓 Additional Resources
-
-- [Microsoft PowerShell Documentation](https://docs.microsoft.com/en-us/powershell/)
-- [Sysinternals Suite](https://docs.microsoft.com/en-us/sysinternals/)
-- [Windows Firewall Configuration](https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-firewall/)
-- [CCDC Competition Resources](https://www.nationalccdc.org/)
-
----
-
-**Good luck with your competition!** 🛡️
