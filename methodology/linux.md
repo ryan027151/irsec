@@ -1,5 +1,11 @@
 # Linux Hardening Methodology
 
+- [ ] Check bash history
+
+```bash
+cat ~/.bash_history
+```
+
 - [ ] Update and upgrade the system
 
 ```bash
