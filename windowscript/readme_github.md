@@ -2,7 +2,6 @@
 
 Comprehensive PowerShell-based security incident response and monitoring toolkit for CCDC competitions.
 
-## 📋 Table of Contents
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
