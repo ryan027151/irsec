@@ -12,13 +12,6 @@ Comprehensive PowerShell-based security incident response and monitoring toolkit
 - [Verification Guide](#verification-guide)
 - [Troubleshooting](#troubleshooting)
 
----
-
-## 🎯 Overview
-
-This toolkit provides automated security response and continuous monitoring for Windows systems during CCDC competitions. It includes incident response data collection, firewall lockdown, user management, service protection, and real-time threat detection.
-
-## ✨ Features
 
 - **Automated Incident Response**: Collects forensic data (network, users, processes, services, logs)
 - **Firewall Lockdown**: Configures firewall with team-specific rules and whitelists
@@ -28,27 +21,13 @@ This toolkit provides automated security response and continuous monitoring for 
 - **Continuous Monitoring**: Real-time detection of suspicious processes and network connections
 - **Interactive Alerts**: Prompts for action on detected threats
 
----
-
-## 📦 Installation
-
-### 1. Download the Scripts
-
-Clone or download all scripts to a single directory (e.g., `C:\CCDC-Toolkit\`):
-
-```powershell
-# Create directory
-New-Item -ItemType Directory -Path "C:\CCDC-Toolkit" -Force
-cd C:\CCDC-Toolkit
-```
-
-### 2. Set Execution Policy
+### Set Execution Policy
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-### 3. Required Scripts
+### Required Scripts
 
 Ensure you have all of these files:
 - `config.ps1` - **CRITICAL: Edit this first!**
@@ -67,11 +46,7 @@ Ensure you have all of these files:
 
 ---
 
-## ⚙️ Configuration
-
-### **CRITICAL: Edit `config.ps1` FIRST!**
-
-Before running ANY scripts, you MUST edit `config.ps1` with your team information:
+Before running ANY scripts, edit `config.ps1` 
 
 ```powershell
 # Open config.ps1 in notepad
@@ -130,11 +105,6 @@ notepad config.ps1
    }
    ```
 
----
-
-## 🚀 Usage
-
-### Quick Start (Full Response)
 
 ```powershell
 # Run as Administrator
@@ -320,10 +290,7 @@ Automatic service protection:
 - Defeats red team service attacks
 
 ---
-
-## ✅ Verification Guide
-
-### How to Verify Each Script Worked
+Verifying each script
 
 #### 1. Incident Response Data Collection
 
@@ -466,9 +433,6 @@ Write-Host "[SUCCESS] Verification report created: $reportPath" -ForegroundColor
 
 ---
 
-## 🔧 Troubleshooting
-
-### Common Issues
 
 #### "Execution policy error"
 ```powershell
@@ -514,9 +478,7 @@ Get-Process powershell | Where-Object { $_.MainWindowTitle -ne "" }
 
 ---
 
-## 📝 Quick Reference Commands
-
-### Essential Commands
+### Commands
 
 ```powershell
 # Quick status check
