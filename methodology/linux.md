@@ -6,6 +6,13 @@
 cat ~/.bash_history
 ```
 
+- [ ] Run [linpeas](https://github.com/peass-ng/PEASS-ng/tree/master/linPEAS)
+
+```bash
+# From public github
+curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh | sh
+```
+
 - [ ] Update and upgrade the system
 
 ```bash
@@ -75,4 +82,14 @@ To rename a host
 
 ```sql
 RENAME USER 'your_user'@'%' TO 'your_user'@'localhost';
+```
+
+## General Linux Config
+- [ ] Block outgoing connections except whitelisted IPs (blue team IPs)
+
+```bash
+sudo ufw default deny outgoing
+sudo ufw allow out on lo
+sudo ufw allow out to 127.0.0.1
+sudo ufw allow out to 172.16.17.1
 ```
