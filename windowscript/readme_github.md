@@ -169,9 +169,6 @@ This will:
 
 ---
 
-## 📖 Script Descriptions
-
-### Core Response Scripts
 
 #### `incident-response.ps1`
 Collects comprehensive forensic data:
