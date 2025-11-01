@@ -135,17 +135,21 @@ if (-not $SkipPasswordReset) {
 }
 
 # ==========================================
-# STEP 5: DISABLE PINs AND BIOMETRICS
+# STEP 5: PIN ROTATION (NOT DELETION!)
 # ==========================================
 if (-not $SkipPINDisable) {
     Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "STEP 5: Disable PINs and Biometrics" -ForegroundColor Cyan
+    Write-Host "STEP 5: PIN Rotation" -ForegroundColor Cyan
     Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "[INFO] This will force users to set new PINs" -ForegroundColor Yellow
+    Write-Host "[INFO] Password login will still work!" -ForegroundColor Green
+    Write-Host ""
     
-    if (Test-Path ".\disable-pins.ps1") {
-        & ".\disable-pins.ps1"
+    if (Test-Path ".\rotate-pins.ps1") {
+        & ".\rotate-pins.ps1"
     } else {
-        Write-Host "[ERROR] disable-pins.ps1 not found!" -ForegroundColor Red
+        Write-Host "[ERROR] rotate-pins.ps1 not found!" -ForegroundColor Red
+        Write-Host "[INFO] Users can still login with passwords" -ForegroundColor Yellow
     }
     Write-Host ""
     Start-Sleep -Seconds 2
