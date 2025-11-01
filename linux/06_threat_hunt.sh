@@ -8,6 +8,12 @@ fi
 OUTPUT="/root/threat_hunt_$(date +%Y%m%d_%H%M%S).txt"
 WAZUH_LOG="/var/ossec/logs/active-responses.log"
 
+# Colors for output
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 echo "========================================="
 echo "THREAT HUNTING - $(date)"
 echo "$(TZ='America/New_York' date) $(basename "$0") - Threat hunting script started" >> /root/activity_log.txt
@@ -163,8 +169,98 @@ fi
 
 # Alert if critical findings
 if [ "$SUSPICIOUS_PROCS" -gt 0 ] || [ "$WEB_SHELLS" -gt 5 ]; then
-    echo "[!] CRITICAL FINDINGS DETECTED - Review $OUTPUT immediately!"
+    echo -e "${RED}[!] CRITICAL FINDINGS DETECTED - Review $OUTPUT immediately!${NC}"
     if [ -f "$WAZUH_LOG" ]; then
         echo "$(date '+%Y-%m-%d %H:%M:%S'): CRITICAL - Threat hunt found suspicious activity!" >> "$WAZUH_LOG"
     fi
 fi
+
+# Check for unknown users interactively
+echo ""
+echo "========================================="
+echo "CHECKING FOR UNKNOWN USERS"
+echo "========================================="
+
+# Define known legitimate users (customize this list for your environment)
+KNOWN_USERS=("root" "whiteteam" "kim" "daemon" "bin" "sys" "sync" "games" "man" "lp" "mail" "news" "uucp" "proxy" "www-data" "backup" "list" "irc" "gnats" "nobody" "systemd-network" "systemd-resolve" "messagebus" "systemd-timesync" "syslog" "_apt" "tss" "uuidd" "tcpdump" "landscape" "fwupd-refresh" "pollinate" "sshd" "mysql" "wazuh" "ossec")
+
+# Get all human users (UID >= 1000)
+ALL_USERS=$(awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd)
+
+UNKNOWN_FOUND=0
+
+for user in $ALL_USERS; do
+    # Check if user is in known users list
+    if [[ ! " ${KNOWN_USERS[@]} " =~ " ${user} " ]]; then
+        UNKNOWN_FOUND=1
+        echo -e "${YELLOW}[!] Found unknown user: ${RED}$user${NC}"
+        
+        # Show user details
+        echo "    Details:"
+        grep "^$user:" /etc/passwd
+        echo "    Last login:"
+        lastlog -u "$user" 2>/dev/null | tail -1
+        echo "    User groups:"
+        groups "$user" 2>/dev/null
+        echo "    Account status:"
+        passwd -S "$user" 2>/dev/null
+        echo ""
+        
+        # Ask for action
+        read -p "Do you want to BLOCK this user? (y/n): " response
+        
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            # Lock the account (disable login)
+            passwd -l "$user" 2>/dev/null
+            usermod -L "$user" 2>/dev/null
+            
+            # Kill all processes owned by the user
+            pkill -KILL -u "$user" 2>/dev/null
+            
+            # Remove SSH authorized keys
+            if [ -d "/home/$user/.ssh" ]; then
+                rm -f "/home/$user/.ssh/authorized_keys" 2>/dev/null
+                echo "    Removed SSH authorized keys"
+            fi
+            
+            echo -e "    ${GREEN}[+] User $user has been BLOCKED (account locked, processes killed)${NC}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S'): User $user blocked by administrator" >> /root/activity_log.txt
+            echo "User $user: BLOCKED" >> /root/blocked_users.log
+            
+            # Log to Wazuh
+            if [ -f "$WAZUH_LOG" ]; then
+                echo "$(date '+%Y-%m-%d %H:%M:%S'): Suspicious user $user blocked by administrator" >> "$WAZUH_LOG"
+            fi
+        else
+            echo -e "    ${YELLOW}[*] User $user was NOT blocked (marked as legitimate)${NC}"
+            echo "$(date '+%Y-%m-%d %H:%M:%S'): User $user reviewed and marked as legitimate" >> /root/activity_log.txt
+            
+            # Optionally add to known users list for future runs
+            read -p "    Add $user to known users list? (y/n): " add_response
+            if [[ "$add_response" =~ ^[Yy]$ ]]; then
+                echo "$user" >> /root/known_users.txt
+                echo "    Added to /root/known_users.txt"
+            fi
+        fi
+        echo ""
+    fi
+done
+
+if [ $UNKNOWN_FOUND -eq 0 ]; then
+    echo -e "${GREEN}[+] No unknown users found. All user accounts are recognized.${NC}"
+fi
+
+echo "========================================="
+echo "USER AUDIT COMPLETE"
+echo "========================================="
+
+# Final summary
+echo ""
+echo "=== FINAL SUMMARY ==="
+echo "Threat hunt report: $OUTPUT"
+echo "Blocked users log: /root/blocked_users.log"
+echo "Activity log: /root/activity_log.txt"
+echo ""
+echo "To review blocked users: cat /root/blocked_users.log"
+echo "To unblock a user: passwd -u USERNAME && usermod -U USERNAME"
+echo ""
