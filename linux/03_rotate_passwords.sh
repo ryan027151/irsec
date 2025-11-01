@@ -28,8 +28,9 @@ echo "Rotating passwords for users..."
 echo -e "${YELLOW}[*] Skipping user: whiteteam (White Team account protected)${NC}"
 echo "whiteteam: SKIPPED (White Team account)" >> /root/password_changes.log
 
+NEW_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
 for user in $USERS; do
-    NEW_PASSWORD=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 16)
+    
     echo "$user:$NEW_PASSWORD" | chpasswd
     
     if [ $? -eq 0 ]; then
