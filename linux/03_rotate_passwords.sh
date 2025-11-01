@@ -16,7 +16,7 @@ echo "========================================="
 
 # Get list of human users (UID >= 1000, has shell)
 # Exclude "whiteteam" user from password rotation
-USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" && $1 != "whiteteam user" {print $1}' /etc/passwd)
+USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" && $1 != "whiteteam" {print $1}' /etc/passwd)
 
 # Clear previous log file
 > /root/password_changes.log
