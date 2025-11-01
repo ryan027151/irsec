@@ -300,6 +300,9 @@ chmod 600 /etc/ssh/sshd_config
 echo "[+] Checking for suspicious accounts..."
 SUSPICIOUS=("backdoor" "hacker" "test" "guest" "admin")
 for user in "${SUSPICIOUS[@]}"; do
+    if [ "$user" == "whiteteam" ]; then
+        continue
+    fi
     if id "$user" &>/dev/null; then
         echo "[!] FOUND SUSPICIOUS USER: $user"
         # Uncomment to automatically delete:
@@ -332,7 +335,7 @@ echo "========================================="
 NEW_PASSWORD="Comp3titi0n!P@ssw0rd2024"
 
 # Get list of human users (UID >= 1000, has shell)
-USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" {print $1}' /etc/passwd)
+USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" && $1 != "whiteteam" {print $1}' /etc/passwd)
 
 echo "Rotating passwords for users..."
 for user in $USERS; do
@@ -387,7 +390,7 @@ echo "USER AUDIT - $(date)"
 echo "========================================="
 
 # CRITICAL: Edit this list with YOUR authorized users
-AUTHORIZED_USERS=("root" "ubuntu" "debian" "centos" "admin" "yourteam1" "yourteam2")
+AUTHORIZED_USERS=("root" "ubuntu" "debian" "centos" "admin" "yourteam1" "yourteam2" "whiteteam")
 
 OUTPUT="user_audit_$(date +%Y%m%d_%H%M%S).txt"
 

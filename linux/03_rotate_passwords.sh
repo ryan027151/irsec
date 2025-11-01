@@ -16,7 +16,7 @@ echo "$(TZ='America/New_York' date) $(basename "$0") - Password rotation script 
 echo "========================================="
 
 # Get list of human users (UID >= 1000, has shell)
-USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" {print $1}' /etc/passwd)
+USERS=$(awk -F: '$3 >= 1000 && $7 !~ /nologin|false/ && $1 != "nobody" && $1 != "whiteteam" {print $1}' /etc/passwd)
 
 # Clear previous log file
 > /root/password_changes.log

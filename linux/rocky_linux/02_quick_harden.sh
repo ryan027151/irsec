@@ -230,6 +230,9 @@ echo "$(TZ='America/New_York' date) $(basename \"$0\") - Set secure permissions 
 echo "[+] Checking for suspicious accounts..."
 SUSPICIOUS=("backdoor" "hacker" "test" "guest" "admin")
 for user in "${SUSPICIOUS[@]}"; do
+    if [ "$user" == "whiteteam" ]; then
+        continue
+    fi
     if id "$user" &>/dev/null; then
         echo "[!] FOUND SUSPICIOUS USER: $user"
     fi

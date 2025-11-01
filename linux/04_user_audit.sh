@@ -7,7 +7,7 @@ echo "$(TZ='America/New_York' date) $(basename "$0") - User audit script started
 echo "========================================="
 
 # CRITICAL: Edit this list with YOUR authorized users
-AUTHORIZED_USERS=("root" "ubuntu" "debian" "centos" "admin" "yourteam1" "yourteam2")
+AUTHORIZED_USERS=("root" "ubuntu" "debian" "centos" "admin" "yourteam1" "yourteam2" "whiteteam")
 
 OUTPUT="user_audit_$(date +%Y%m%d_%H%M%S).txt"
 
