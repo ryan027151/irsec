@@ -39,5 +39,7 @@ docker restart <container_id>
     - Remove the line from httpd.conf that looks like the following
 
 ```apache
+<Directory>
 Options Includes Indexes FollowSymLinks MultiViews
+</Directory>
 ```
