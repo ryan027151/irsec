@@ -87,11 +87,19 @@ if ($unauthorizedUsers.Count -eq 0) {
 
 # Check Administrator group
 Write-Host "[INFO] Checking Administrators group..." -ForegroundColor Yellow
-$admins = Get-LocalGroupMember -Group "Administrators" -ErrorAction SilentlyContinue
+try {
+    $admins = Get-LocalGroupMember -Group "Administrators" -ErrorAction Stop
+}
+catch {
+    Write-Host "[ERROR] Could not enumerate Administrators group: $($_.Exception.Message)" -ForegroundColor Red
+    $admins = @()
+}
 
 Write-Host ""
 Write-Host "Current Administrators:" -ForegroundColor Cyan
 foreach ($admin in $admins) {
+    if (-not $admin.Name) { continue }
+    
     $username = $admin.Name.Split('\')[-1]
     $isAuthorized = $username -in $Global:TeamConfig.AuthorizedAdmins
     
@@ -103,7 +111,7 @@ foreach ($admin in $admins) {
         $response = Read-Host "  Remove from Administrators group? (Y/N)"
         if ($response -eq "Y" -or $response -eq "y") {
             try {
-                Remove-LocalGroupMember -Group "Administrators" -Member $admin.Name -Confirm:$false
+                Remove-LocalGroupMember -Group "Administrators" -Member $admin.Name -Confirm:$false -ErrorAction Stop
                 Write-Host "  [REMOVED] $($admin.Name) removed from Administrators" -ForegroundColor Green
             }
             catch {
