@@ -100,3 +100,9 @@ sudo ufw allow out to 172.16.17.1
 sudo cat /etc/sudoers
 sudo cat /etc/sudoers.d/*
 ```
+
+- [ ] List open ports
+
+```bash
+sudo ss -tulpn
+```
