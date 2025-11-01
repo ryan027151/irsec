@@ -93,3 +93,10 @@ sudo ufw allow out on lo
 sudo ufw allow out to 127.0.0.1
 sudo ufw allow out to 172.16.17.1
 ```
+
+- [ ] Check linux users
+
+```bash
+sudo cat /etc/sudoers
+sudo cat /etc/sudoers.d/*
+```
