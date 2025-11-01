@@ -1,0 +1,371 @@
+IF SCORING IS DOWN:
+-------------------
+1. Check firewall isn't blocking scoring engine:
+   Get-NetFirewallProfile | Select Name, Enabled
+   
+2. Verify services are running:
+   Get-Service W3SVC, DNS, LanmanServer, WinRM | Select Name, Status
+   
+3. Check network connectivity:
+   Test-NetConnection -ComputerName 10.0.0.1 -Port 80
+   
+4. Review firewall logs:
+   Get-Content "$env:SystemRoot\System32\LogFiles\Firewall\pfirewall.log" -Tail 100 | Select-String "DROP"
+
+IF RED TEAM DISABLED SERVICES:
+-------------------------------
+1. Service watchdog should auto-restart - check if running:
+   Get-Process powershell | Where-Object { $_.MainWindowTitle -match "watchdog" }
+   
+2. Manual service restart:
+   Restart-Service W3SVC, DNS, LanmanServer, WinRM -Force
+   
+3. If service won't start, check startup type:
+   Get-Service W3SVC | Select Name, Status, StartType
+   Set-Service W3SVC -StartupType Automatic
+   Start-Service W3SVC
+
+IF FIREWALL WAS DISABLED:
+--------------------------
+1. Re-enable firewall:
+   Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
+   
+2. Restore from backup:
+   Import-Clixml C:\CCDC-Backups\fw-backup-*.xml | New-NetFirewallRule
+   
+3. Re-run firewall lockdown:
+   .\firewall-lockdown.ps1
+
+IF UNAUTHORIZED USERS RETURN:
+------------------------------
+1. Re-run user cleanup:
+   .\user-cleanup.ps1
+   
+2. Check for backdoor accounts:
+   Get-LocalUser | Where-Object { $_.Name -notmatch "Administrator|ccdc" }
+   
+3. Remove unauthorized admins:
+   Get-LocalGroupMember -Group "Administrators"
+   Remove-LocalGroupMember -Group "Administrators" -Member "SuspiciousUser"
+
+IF PASSWORDS WERE CHANGED BY RED TEAM:
+---------------------------------------
+1. Re-run password reset:
+   .\reset-passwords.ps1
+   
+2. Distribute new passwords from log file:
+   notepad (Get-ChildItem C:\CCDC-Logs\PasswordReset_*.txt | Sort LastWriteTime -Descending | Select -First 1).FullName
+   
+3. Re-disable PINs:
+   .\disable-pins.ps1
+
+IF PERSISTENCE MECHANISMS ADDED:
+---------------------------------
+1. Re-run startup integrity:
+   .\startup-integrity.ps1
+   
+2. Check scheduled tasks:
+   Get-ScheduledTask | Where-Object { $_.State -eq "Ready" -and $_.Author -notmatch "Microsoft" }
+   
+3. Check registry run keys:
+   Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+   Get-ItemProperty HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+
+================================================================================
+ROLLBACK PROCEDURES
+================================================================================
+
+ROLLBACK FIREWALL CHANGES:
+---------------------------
+1. Locate backup file:
+   Get-ChildItem C:\CCDC-Backups\fw-backup-*.xml | Sort LastWriteTime -Descending
+   
+2. Import backup:
+   $backup = Import-Clixml C:\CCDC-Backups\fw-backup-YYYYMMDD_HHMMSS.xml
+   $backup | ForEach-Object { New-NetFirewallRule -Name $_.Name -DisplayName $_.DisplayName }
+   
+3. Or disable all CCDC rules:
+   Get-NetFirewallRule | Where-Object { $_.DisplayName -like "CCDC-*" } | Disable-NetFirewallRule
+
+RESTORE USER ACCOUNTS:
+----------------------
+1. Review backup from incident response:
+   Import-Csv .\IR-HOSTNAME-TIMESTAMP\local-users.csv
+   
+2. Re-create deleted user:
+   New-LocalUser -Name "Username" -Password (Read-Host -AsSecureString) -Description "Restored user"
+   
+3. Add to appropriate groups:
+   Add-LocalGroupMember -Group "Users" -Member "Username"
+
+RESTORE SERVICE CONFIGURATION:
+-------------------------------
+1. Check service backup in incident response data:
+   Import-Csv .\IR-HOSTNAME-TIMESTAMP\services.csv | Where-Object { $_.Name -eq "W3SVC" }
+   
+2. Set correct startup type:
+   Set-Service -Name "ServiceName" -StartupType Automatic
+   
+3. Start service:
+   Start-Service -Name "ServiceName"
+
+RESTORE config.ps1 (if modified by red team):
+----------------------------------------------
+1. Check if config has been tampered:
+   Get-Content .\config.ps1 | Select-String "TeamNumber|AuthorizedUsers"
+   
+2. If corrupted, restore from backup or manually fix:
+   notepad .\config.ps1
+   
+3. Verify critical settings:
+   - Team number is correct
+   - Authorized users list is complete
+   - White team IPs are whitelisted
+   - Scoring ports are correct
+
+VERIFY MONITORING IS RUNNING:
+------------------------------
+1. Check running monitors:
+   Get-Process powershell | Where-Object { $_.MainWindowTitle -ne "" } | Select MainWindowTitle
+   
+2. If monitors stopped, restart:
+   Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -NoExit -File `".\continuous-network-monitor.ps1`"" -Verb RunAs
+   Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -NoExit -File `".\continuous-process-monitor.ps1`"" -Verb RunAs
+   Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -NoExit -File `".\service-watchdog.ps1`"" -Verb RunAs
+
+================================================================================
+INJECT SUBMISSION
+================================================================================
+
+REPORTING AN INCIDENT:
+----------------------
+1. Collect evidence:
+   - Screenshot of suspicious activity
+   - Log files from C:\CCDC-Logs\
+   - Incident response ZIP file
+   
+2. Document timeline:
+   - When was attack detected?
+   - What was compromised?
+   - What actions were taken?
+   - Current status?
+   
+3. Submit via competition portal with:
+   - Team number
+   - Hostname
+   - Timestamp
+   - Description
+   - Evidence files
+
+REQUESTING HELP:
+----------------
+1. Via competition portal:
+   - Click "Submit Ticket"
+   - Select category: "Technical Support" or "Scoring Issue"
+   - Provide detailed information
+   
+2. Information to include:
+   - Team number: [YOUR TEAM NUMBER]
+   - Hostname: $env:COMPUTERNAME
+   - Service affected: [SERVICE NAME]
+   - Current status: [UP/DOWN]
+   - Actions taken: [LIST ACTIONS]
+   - Log files attached: [YES/NO]
+
+================================================================================
+QUICK DIAGNOSTIC COMMANDS
+================================================================================
+
+SYSTEM STATUS CHECK:
+--------------------
+# One-liner to check everything
+@"
+FIREWALL: $(( Get-NetFirewallProfile | Where-Object { $_.Enabled -eq $false }).Count -eq 0 ? "ON" : "OFF")
+SERVICES: $(Get-Service W3SVC,DNS,LanmanServer,WinRM -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq "Running" } | Measure | Select -Expand Count)/4 Running
+USERS: $(Get-LocalUser | Where-Object { $_.Enabled } | Measure | Select -Expand Count) Enabled
+ADMINS: $(Get-LocalGroupMember -Group "Administrators" | Measure | Select -Expand Count)
+CONNECTIONS: $(Get-NetTCPConnection -State Established | Measure | Select -Expand Count)
+"@
+
+GENERATE STATUS REPORT:
+-----------------------
+$report = @{
+    Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Hostname = $env:COMPUTERNAME
+    FirewallEnabled = (Get-NetFirewallProfile | Where-Object { $_.Name -eq "Domain" }).Enabled
+    CriticalServices = @{}
+}
+foreach ($svc in @("W3SVC","DNS","LanmanServer","WinRM")) {
+    $s = Get-Service $svc -ErrorAction SilentlyContinue
+    $report.CriticalServices[$svc] = if ($s) { $s.Status } else { "NotInstalled" }
+}
+$report | ConvertTo-Json
+
+FIND RECENT CHANGES:
+--------------------
+# Find recently modified files in Windows directory
+Get-ChildItem C:\Windows -Recurse -File -ErrorAction SilentlyContinue | 
+    Where-Object { $_.LastWriteTime -gt (Get-Date).AddHours(-1) } | 
+    Select FullName, LastWriteTime | 
+    Sort LastWriteTime -Descending
+
+# Find recently created users
+Get-LocalUser | Where-Object { $_.Name -notmatch "^(Administrator|DefaultAccount|Guest|WDAGUtilityAccount)$" } | 
+    Select Name, Enabled, LastLogon, SID
+
+# Find recently modified registry keys (Run keys)
+Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run | 
+    Select PSPath, * -ExcludeProperty PS*
+
+================================================================================
+COMPETITION SCORING PORTS
+================================================================================
+
+TCP PORTS TO KEEP OPEN:
+-----------------------
+80      - HTTP (Web Server)
+443     - HTTPS (Web Server - SSL)
+445     - SMB (File Sharing)
+3389    - RDP (Remote Desktop)
+5985    - WinRM HTTP (PowerShell Remoting)
+5986    - WinRM HTTPS (PowerShell Remoting - SSL)
+53      - DNS (Domain Name Service)
+
+UDP PORTS TO KEEP OPEN:
+-----------------------
+53      - DNS (Domain Name Service)
+123     - NTP (Time Synchronization)
+137     - NetBIOS Name Service
+138     - NetBIOS Datagram Service
+
+ICMP (PING):
+------------
+Must be enabled for scoring engine to verify host is up
+
+VERIFY SCORING PORTS:
+---------------------
+# Check if ports are listening
+Get-NetTCPConnection -LocalPort 80,443,445,3389,5985,53 | 
+    Select LocalAddress, LocalPort, State, OwningProcess | 
+    Format-Table
+
+# Test from scoring engine (if you have access):
+Test-NetConnection -ComputerName <YourIP> -Port 80
+
+================================================================================
+SERVICE-SPECIFIC RECOVERY
+================================================================================
+
+IIS (W3SVC):
+------------
+# Check status
+Get-Service W3SVC
+
+# Start service
+Start-Service W3SVC
+
+# Check website status
+Import-Module WebAdministration
+Get-Website | Select Name, State, PhysicalPath
+
+# Start all sites
+Get-Website | Start-Website
+
+# Verify wwwroot integrity
+Get-ChildItem C:\inetpub\wwwroot -Recurse | Select FullName, LastWriteTime
+
+DNS:
+----
+# Check status
+Get-Service DNS
+
+# Start service
+Start-Service DNS
+
+# Check zones
+Get-DnsServerZone
+
+# Verify forwarders
+Get-DnsServerForwarder
+
+SMB (LanmanServer):
+-------------------
+# Check status
+Get-Service LanmanServer
+
+# Start service
+Start-Service LanmanServer
+
+# Check shares
+Get-SmbShare | Select Name, Path, Description
+
+# Check permissions
+Get-SmbShareAccess -Name "ShareName"
+
+WinRM:
+------
+# Check status
+Get-Service WinRM
+
+# Start service
+Start-Service WinRM
+
+# Enable WinRM
+Enable-PSRemoting -Force
+
+# Check listener
+Get-WSManInstance -ResourceURI winrm/config/listener -Enumerate
+
+================================================================================
+CONTACT INFORMATION
+================================================================================
+
+White Team:
+-----------
+- Email: [COMPETITION EMAIL]
+- Portal: [COMPETITION PORTAL URL]
+- Emergency: [COMPETITION PHONE]
+
+Team Captain:
+-------------
+- Name: [CAPTAIN NAME]
+- Phone: [CAPTAIN PHONE]
+- Email: [CAPTAIN EMAIL]
+
+Team Members:
+-------------
+1. [MEMBER 1 NAME] - [ROLE] - [PHONE]
+2. [MEMBER 2 NAME] - [ROLE] - [PHONE]
+3. [MEMBER 3 NAME] - [ROLE] - [PHONE]
+
+================================================================================
+IMPORTANT FILE LOCATIONS
+================================================================================
+
+Logs:
+-----
+- Master logs: C:\CCDC-Logs\
+- Firewall logs: C:\Windows\System32\LogFiles\Firewall\pfirewall.log
+- Event logs: eventvwr.msc
+
+Backups:
+--------
+- Configuration backups: C:\CCDC-Backups\
+- Firewall rules: C:\CCDC-Backups\fw-backup-*.xml
+- Incident response: .\IR-HOSTNAME-TIMESTAMP.zip
+
+Scripts:
+--------
+- Master script: 0-MASTER-CCDC-Response.ps1
+- Configuration: config.ps1
+- All scripts: [SCRIPT DIRECTORY]
+
+Password Files:
+---------------
+- Password resets: C:\CCDC-Logs\PasswordReset_*.txt
+
+Reports:
+--------
+- User audit: C:\CCDC-Logs\UserAudit_*.html
+- Network snapshots: C:\CCDC-Logs\NetworkSnapshots_*\
+- Startup integrity: C:\CCDC-Logs\StartupIntegrity_*.csv
