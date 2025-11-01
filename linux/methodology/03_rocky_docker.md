@@ -1,5 +1,8 @@
 # Docker httpd on Rocky Linux 9
 
+- [ ] Backup the container
+
+
 - [ ] List running containers
 
 ```bash
@@ -43,3 +46,8 @@ docker restart <container_id>
 Options Includes Indexes FollowSymLinks MultiViews
 </Directory>
 ```
+
+- [ ] Implement HTTPS
+    - Generate a self-signed certificate
+    - Configure Apache to use it
+    - Restart Apache
