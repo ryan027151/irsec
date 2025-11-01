@@ -16,17 +16,15 @@ This toolkit helps you **find problems**, **fix them fast**, and **watch for att
 
 ### On Your Prep Laptop
 ```bash
-mkdir -p competition_toolkit/linux_scripts
-cd competition_toolkit/linux_scripts
+mkdir -p linux_scripts
+cd linux_scripts
 git clone https://github.com/ryan027151/irsec.git
 ```
 
 ### File Structure
 ```
 Your Laptop
-└── competition_toolkit/
-    ├── linux_scripts/      ← All Linux .sh files
-    └── windows_scripts/    ← All Windows .ps1 files
+└── linux_scripts/      ← All Linux .sh files
 ```
 
 ---
@@ -67,6 +65,7 @@ sudo systemctl start auditd
 ```
 
 **5. Initial Security (Run on BOTH machines)**
+First, do 00_linux_hardening.md
 ```bash
 sudo ./01_enum.sh              # Know your system - review output carefully
 sudo ./02_quick_harden.sh      # Lock it down - firewall, SSH, whitelist team IPs
