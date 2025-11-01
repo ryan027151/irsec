@@ -13,7 +13,7 @@ fi
 
 echo "========================================="
 echo "NGINX HARDENING - $(date)"
-echo "$(date) $(basename "$0") - Nginx hardening script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Nginx hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 NGINX_CONF="/etc/nginx/nginx.conf"
@@ -28,7 +28,7 @@ echo "[+] Backup created: $BACKUP_DIR"
 echo "[+] Removing default pages..."
 rm -f /var/www/html/index.nginx-debian.html 2>/dev/null
 echo "Nginx Secured" > /var/www/html/index.html
-echo "$(date) $(basename \"$0\") - Removed default Nginx page and created placeholder" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Removed default Nginx page and created placeholder" >> /root/activity_log.txt
 
 # Create security configuration
 SECURITY_CONF="/etc/nginx/conf.d/security.conf"
@@ -63,14 +63,14 @@ client_header_timeout 10;
 keepalive_timeout 5 5;
 send_timeout 10;
 EOF
-echo "$(date) $(basename \"$0\") - Created Nginx security configuration file: $SECURITY_CONF" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Created Nginx security configuration file: $SECURITY_CONF" >> /root/activity_log.txt
 
 # Set proper permissions
 echo "[+] Setting secure file permissions..."
 find /var/www -type d -exec chmod 755 {} \;
 find /var/www -type f -exec chmod 644 {} \;
 chown -R www-data:www-data /var/www 2>/dev/null
-echo "$(date) $(basename \"$0\") - Set secure permissions on /var/www" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Set secure permissions on /var/www" >> /root/activity_log.txt
 
 # Test configuration
 echo "[+] Testing Nginx configuration..."
@@ -85,11 +85,11 @@ fi
 read -p "Restart Nginx now? (y/N): " restart
 if [ "$restart" == "y" ]; then
     systemctl restart nginx
-    echo "$(date) $(basename \"$0\") - Restarted Nginx service" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Restarted Nginx service" >> /root/activity_log.txt
     echo "[+] Nginx restarted"
 fi
 
 echo "========================================="
-echo "$(date) $(basename "$0") - Nginx hardening script finished" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Nginx hardening script finished" >> /root/activity_log.txt
 echo "NGINX HARDENING COMPLETE"
 echo "========================================="

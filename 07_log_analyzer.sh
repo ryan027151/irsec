@@ -11,7 +11,7 @@ fi
 
 echo "========================================="
 echo "LOG ANALYSIS - $(date)"
-echo "$(date) $(basename "$0") - Log analysis script started for $LOGFILE" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Log analysis script started for $LOGFILE" >> /root/activity_log.txt
 echo "Analyzing: $LOGFILE"
 echo "========================================="
 

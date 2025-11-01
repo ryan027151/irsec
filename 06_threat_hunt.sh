@@ -10,7 +10,7 @@ OUTPUT="threat_hunt_$(date +%Y%m%d_%H%M%S).txt"
 
 echo "========================================="
 echo "THREAT HUNTING - $(date)"
-echo "$(date) $(basename "$0") - Threat hunting script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Threat hunting script started" >> /root/activity_log.txt
 echo "========================================="
 
 {

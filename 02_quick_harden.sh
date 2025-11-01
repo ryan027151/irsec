@@ -8,7 +8,7 @@ fi
 
 echo "========================================="
 echo "QUICK HARDENING - $(date)"
-echo "$(date) $(basename "$0") - Quick hardening script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Quick hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 # Create backup directory
@@ -31,25 +31,25 @@ cp /etc/crontab "$BACKUP_DIR/"
 echo "[+] Configuring firewall..."
 if command -v ufw &> /dev/null; then
     ufw --force enable
-    echo "$(date) $(basename \"$0\") - UFW firewall enabled" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - UFW firewall enabled" >> /root/activity_log.txt
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow 22/tcp comment 'SSH'
     ufw allow 80/tcp comment 'HTTP'
     ufw allow 443/tcp comment 'HTTPS'
     ufw reload
-    echo "$(date) $(basename \"$0\") - UFW firewall reloaded with new rules" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - UFW firewall reloaded with new rules" >> /root/activity_log.txt
     echo "UFW firewall enabled"
 elif command -v firewall-cmd &> /dev/null; then
     systemctl enable firewalld
     systemctl start firewalld
-    echo "$(date) $(basename \"$0\") - Firewalld enabled and started" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Firewalld enabled and started" >> /root/activity_log.txt
     firewall-cmd --set-default-zone=public
     firewall-cmd --zone=public --add-service=ssh --permanent
     firewall-cmd --zone=public --add-service=http --permanent
     firewall-cmd --zone=public --add-service=https --permanent
     firewall-cmd --reload
-    echo "$(date) $(basename \"$0\") - Firewalld reloaded with new rules" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Firewalld reloaded with new rules" >> /root/activity_log.txt
     echo "Firewalld enabled"
 else
     # Fallback to iptables
@@ -62,7 +62,7 @@ else
     iptables -A INPUT -p tcp --dport 22 -j ACCEPT
     iptables -A INPUT -p tcp --dport 80 -j ACCEPT
     iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-    echo "$(date) $(basename \"$0\") - Applied basic iptables rules" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Applied basic iptables rules" >> /root/activity_log.txt
     echo "Basic iptables rules applied"
 fi
 
@@ -76,11 +76,11 @@ sed -i 's/^#*MaxAuthTries.*/MaxAuthTries 3/' /etc/ssh/sshd_config
 sed -i 's/^#*ClientAliveInterval.*/ClientAliveInterval 300/' /etc/ssh/sshd_config
 sed -i 's/^#*ClientAliveCountMax.*/ClientAliveCountMax 2/' /etc/ssh/sshd_config
 sed -i 's/^#*Protocol.*/Protocol 2/' /etc/ssh/sshd_config
-echo "$(date) $(basename \"$0\") - Hardened SSH configuration in /etc/ssh/sshd_config" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Hardened SSH configuration in /etc/ssh/sshd_config" >> /root/activity_log.txt
 
 # Restart SSH
 systemctl restart sshd 2>/dev/null || systemctl restart ssh 2>/dev/null || service ssh restart 2>/dev/null
-echo "$(date) $(basename \"$0\") - SSH service restarted" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - SSH service restarted" >> /root/activity_log.txt
 echo "SSH hardened and restarted"
 
 # Enable audit logging
@@ -88,7 +88,7 @@ echo "[+] Enabling audit logging..."
 if command -v auditd &> /dev/null; then
     systemctl enable auditd
     systemctl start auditd
-    echo "$(date) $(basename \"$0\") - Auditd service enabled and started" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Auditd service enabled and started" >> /root/activity_log.txt
     echo "Auditd enabled"
 fi
 
@@ -98,7 +98,7 @@ RISKY_SERVICES=("telnet" "rsh" "rlogin" "vsftpd" "pure-ftpd" "proftpd")
 for service in "${RISKY_SERVICES[@]}"; do
     systemctl disable "$service" 2>/dev/null
     systemctl stop "$service" 2>/dev/null
-    echo "$(date) $(basename \"$0\") - Disabled and stopped risky service: $service" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Disabled and stopped risky service: $service" >> /root/activity_log.txt
 done
 
 # Set password policies
@@ -107,7 +107,7 @@ sed -i.bak 's/^PASS_MAX_DAYS.*/PASS_MAX_DAYS   90/' /etc/login.defs
 sed -i 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS   1/' /etc/login.defs
 sed -i 's/^PASS_MIN_LEN.*/PASS_MIN_LEN    12/' /etc/login.defs
 sed -i 's/^PASS_WARN_AGE.*/PASS_WARN_AGE   7/' /etc/login.defs
-echo "$(date) $(basename \"$0\") - Set password policies in /etc/login.defs" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Set password policies in /etc/login.defs" >> /root/activity_log.txt
 
 # Enable password quality requirements
 if [ -f /etc/security/pwquality.conf ]; then
@@ -117,7 +117,7 @@ if [ -f /etc/security/pwquality.conf ]; then
     sed -i 's/^# lcredit.*/lcredit = -1/' /etc/security/pwquality.conf
     sed -i 's/^# ocredit.*/ocredit = -1/' /etc/security/pwquality.conf
     echo "Password quality requirements set"
-    echo "$(date) $(basename \"$0\") - Set password quality requirements in /etc/security/pwquality.conf" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Set password quality requirements in /etc/security/pwquality.conf" >> /root/activity_log.txt
 fi
 
 # Enable SYN cookie protection
@@ -126,17 +126,17 @@ sysctl -w net.ipv4.tcp_syncookies=1
 sysctl -w net.ipv4.tcp_max_syn_backlog=2048
 sysctl -w net.ipv4.tcp_synack_retries=2
 sysctl -w net.ipv4.tcp_syn_retries=5
-echo "$(date) $(basename \"$0\") - Enabled SYN flood protection" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Enabled SYN flood protection" >> /root/activity_log.txt
 
 # Disable IP forwarding
 echo "[+] Disabling IP forwarding..."
 sysctl -w net.ipv4.ip_forward=0
-echo "$(date) $(basename \"$0\") - Disabled IP forwarding" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Disabled IP forwarding" >> /root/activity_log.txt
 
 # Enable exec-shield
 sysctl -w kernel.exec-shield=1 2>/dev/null
 sysctl -w kernel.randomize_va_space=2 2>/dev/null
-echo "$(date) $(basename \"$0\") - Enabled ASLR (randomize_va_space)" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Enabled ASLR (randomize_va_space)" >> /root/activity_log.txt
 
 # Set secure file permissions
 echo "[+] Setting secure permissions on sensitive files..."
@@ -145,7 +145,7 @@ chmod 640 /etc/shadow
 chmod 644 /etc/group
 chmod 640 /etc/gshadow 2>/dev/null
 chmod 600 /etc/ssh/sshd_config
-echo "$(date) $(basename \"$0\") - Set secure permissions on sensitive files" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Set secure permissions on sensitive files" >> /root/activity_log.txt
 
 # Check for common backdoor accounts
 echo "[+] Checking for suspicious accounts..."
@@ -157,7 +157,7 @@ for user in "${SUSPICIOUS[@]}"; do
 done
 
 echo "========================================="
-echo "$(date) $(basename "$0") - Quick hardening script finished" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Quick hardening script finished" >> /root/activity_log.txt
 echo "QUICK HARDENING COMPLETE"
 echo "Backups stored in: $BACKUP_DIR"
 echo "========================================="

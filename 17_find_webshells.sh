@@ -10,7 +10,7 @@ fi
 
 echo "========================================="
 echo "WEB SHELL SCANNER - $(date)"
-echo "$(date) $(basename "$0") - Web shell scanner script started for directory $SCAN_DIR" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Web shell scanner script started for directory $SCAN_DIR" >> /root/activity_log.txt
 echo "Scanning: $SCAN_DIR"
 echo "========================================="
 

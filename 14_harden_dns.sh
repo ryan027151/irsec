@@ -13,7 +13,7 @@ fi
 
 echo "========================================="
 echo "DNS (BIND) HARDENING - $(date)"
-echo "$(date) $(basename "$0") - DNS (BIND) hardening script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - DNS (BIND) hardening script started" >> /root/activity_log.txt
 echo "========================================="
 
 NAMED_CONF="/etc/bind/named.conf.options"
@@ -52,7 +52,7 @@ options {
 EOF
 
 echo "[+] DNS hardening configuration added"
-echo "$(date) $(basename \"$0\") - Added hardening options to BIND configuration file: $NAMED_CONF" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename \"$0\") - Added hardening options to BIND configuration file: $NAMED_CONF" >> /root/activity_log.txt
 
 # Test configuration
 named-checkconf
@@ -65,11 +65,11 @@ fi
 read -p "Restart BIND now? (y/N): " restart
 if [ "$restart" == "y" ]; then
     systemctl restart bind9 2>/dev/null || systemctl restart named 2>/dev/null
-    echo "$(date) $(basename \"$0\") - Restarted BIND DNS service" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Restarted BIND DNS service" >> /root/activity_log.txt
     echo "[+] BIND restarted"
 fi
 
 echo "========================================="
-echo "$(date) $(basename "$0") - DNS (BIND) hardening script finished" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - DNS (BIND) hardening script finished" >> /root/activity_log.txt
 echo "DNS HARDENING COMPLETE"
 echo "========================================="

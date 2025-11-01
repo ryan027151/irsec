@@ -8,7 +8,7 @@ fi
 
 echo "========================================="
 echo "BACKDOOR REMOVAL - $(date)"
-echo "$(date) $(basename "$0") - Backdoor removal script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Backdoor removal script started" >> /root/activity_log.txt
 echo "========================================="
 
 LOG="backdoor_removal_$(date +%Y%m%d_%H%M%S).log"
@@ -25,7 +25,7 @@ if [ -n "$SUSPICIOUS_PROCS" ]; then
         PROC_INFO=$(ps -p $pid -o pid,user,cmd)
         echo "Killing PID $pid: $PROC_INFO"
         kill -9 $pid
-        echo "$(date) $(basename \"$0\") - Killed suspicious process PID $pid: $PROC_INFO" >> /root/activity_log.txt
+        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Killed suspicious process PID $pid: $PROC_INFO" >> /root/activity_log.txt
     done
 else
     echo "No suspicious processes found"
@@ -38,7 +38,7 @@ crontab -l 2>/dev/null
 read -p "Remove all root cron jobs? (y/N): " remove_cron
 if [ "$remove_cron" == "y" ]; then
     crontab -r
-    echo "$(date) $(basename \"$0\") - Cleared root crontab" >> /root/activity_log.txt
+    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Cleared root crontab" >> /root/activity_log.txt
     echo "Root crontab cleared"
 fi
 
@@ -67,7 +67,7 @@ if [ -n "$del_user" ]; then
     userdel -r "$del_user" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo "User $del_user deleted"
-        echo "$(date) $(basename \"$0\") - Deleted user: $del_user" >> /root/activity_log.txt
+        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Deleted user: $del_user" >> /root/activity_log.txt
     else
         echo "Failed to delete $del_user"
     fi
@@ -81,7 +81,7 @@ if [ -d /var/www ]; then
         read -p "Delete $file? (y/N): " del_file
         if [ "$del_file" == "y" ]; then
             rm "$file"
-            echo "$(date) $(basename \"$0\") - Deleted suspicious web shell: $file" >> /root/activity_log.txt
+            echo "$(TZ='America/New_York' date) $(basename \"$0\") - Deleted suspicious web shell: $file" >> /root/activity_log.txt
             echo "Deleted: $file"
         fi
     done
@@ -99,7 +99,7 @@ if [ -n "$rmmod_name" ]; then
     rmmod "$rmmod_name" 2>/dev/null
     if [ $? -eq 0 ]; then
         echo "Module $rmmod_name removed"
-        echo "$(date) $(basename \"$0\") - Removed kernel module: $rmmod_name" >> /root/activity_log.txt
+        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Removed kernel module: $rmmod_name" >> /root/activity_log.txt
     else
         echo "Failed to remove $rmmod_name"
     fi

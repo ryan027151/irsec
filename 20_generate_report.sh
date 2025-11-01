@@ -3,7 +3,7 @@
 
 OUTPUT="FINAL_INCIDENT_REPORT_$(date +%Y%m%d_%H%M%S).md"
 
-echo "$(date) $(basename "$0") - Report generation script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Report generation script started" >> /root/activity_log.txt
 cat > "$OUTPUT" << 'EOF'
 # INCIDENT RESPONSE REPORT
 ## IRSeC Competition

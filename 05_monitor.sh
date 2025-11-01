@@ -11,7 +11,7 @@ BASELINE_PROCS="/tmp/baseline_procs.txt"
 
 echo "========================================="
 echo "CONTINUOUS MONITORING STARTED"
-echo "$(date) $(basename "$0") - Continuous monitoring script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Continuous monitoring script started" >> /root/activity_log.txt
 echo "Log file: $LOGFILE"
 echo "Alert file: $ALERT_FILE"
 echo "Press Ctrl+C to stop"

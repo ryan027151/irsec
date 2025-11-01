@@ -8,7 +8,7 @@ fi
 
 echo "========================================="
 echo "PASSWORD STRENGTH CHECK - $(date)"
-echo "$(date) $(basename "$0") - Password strength check script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Password strength check script started" >> /root/activity_log.txt
 echo "========================================="
 
 # Check if john the ripper is available

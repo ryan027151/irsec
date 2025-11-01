@@ -10,7 +10,7 @@ INCIDENT_FILE="$INCIDENT_DIR/incident_$TIMESTAMP.txt"
 
 echo "========================================="
 echo "INCIDENT LOGGER"
-echo "$(date) $(basename "$0") - Incident logging script started" >> /root/activity_log.txt
+echo "$(TZ='America/New_York' date) $(basename "$0") - Incident logging script started" >> /root/activity_log.txt
 echo "========================================="
 
 {
