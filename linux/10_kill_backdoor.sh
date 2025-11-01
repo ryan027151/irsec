@@ -1,113 +1,169 @@
-
 #!/bin/bash
+# Initial script to block all red team activity with interactive IP whitelisting
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root (sudo)"
   exit 1
 fi
 
-echo "========================================="
-echo "BACKDOOR REMOVAL - $(date)"
-echo "$(TZ='America/New_York' date) $(basename "$0") - Backdoor removal script started" >> /root/activity_log.txt
-echo "========================================="
-
-LOG="backdoor_removal_$(date +%Y%m%d_%H%M%S).log"
-
-{
-echo "=== BACKDOOR REMOVAL LOG ==="
-echo "Date: $(date)"
-
-# Kill suspicious processes
-echo -e "\n[+] Killing suspicious processes..."
-SUSPICIOUS_PROCS=$(ps aux | grep -E 'nc|ncat|/bin/sh -i|/bin/bash -i|perl.*socket|python.*socket' | grep -v grep | awk '{print $2}')
-if [ -n "$SUSPICIOUS_PROCS" ]; then
-    for pid in $SUSPICIOUS_PROCS; do
-        PROC_INFO=$(ps -p $pid -o pid,user,cmd)
-        echo "Killing PID $pid: $PROC_INFO"
-        kill -9 $pid
-        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Killed suspicious process PID $pid: $PROC_INFO" >> /root/activity_log.txt
-    done
+# --- Configuration ---
+# Load existing team IPs from previous hardening script if available
+if [ -f /root/team_ips.txt ]; then
+    echo -e "${GREEN}[+] Loading teammate IPs from /root/team_ips.txt${NC}"
+    WHITELISTED_IPS=($(grep -v "^#" /root/team_ips.txt | grep -v "^$"))
 else
-    echo "No suspicious processes found"
+    # Default whitelist - add your team's IP addresses here
+    WHITELISTED_IPS=("172.16.17.1" "172.16.17.2")
 fi
 
-# Check and clean cron jobs
-echo -e "\n[+] Checking cron jobs..."
-echo "Current root crontab:"
-crontab -l 2>/dev/null
-read -p "Remove all root cron jobs? (y/N): " remove_cron
-if [ "$remove_cron" == "y" ]; then
-    crontab -r
-    echo "$(TZ='America/New_York' date) $(basename \"$0\") - Cleared root crontab" >> /root/activity_log.txt
-    echo "Root crontab cleared"
-fi
+# Display current whitelist
+echo "========================================="
+echo "FIREWALL EMERGENCY BLOCK"
+echo "========================================="
+echo -e "${YELLOW}Current whitelisted IPs (teammates):${NC}"
+for ip in "${WHITELISTED_IPS[@]}"; do
+    echo "  - $ip"
+done
+echo ""
 
-# Remove suspicious SSH keys
-echo -e "\n[+] Checking SSH authorized keys..."
-for home in /home/* /root; do
-    AUTHKEYS="$home/.ssh/authorized_keys"
-    if [ -f "$AUTHKEYS" ]; then
-        echo "Keys in $AUTHKEYS:"
-        cat "$AUTHKEYS"
-        read -p "Remove suspicious keys from $AUTHKEYS? (y/N): " remove_keys
-        if [ "$remove_keys" == "y" ]; then
-            read -p "Enter line numbers to remove (comma-separated): " lines
-            cp "$AUTHKEYS" "${AUTHKEYS}.bak"
-            echo "Backup created: ${AUTHKEYS}.bak"
+# Ask if user wants to add more IPs
+echo -e "${YELLOW}[?] Do you want to add more IPs to the whitelist?${NC}"
+echo "    (Enter IP addresses one at a time, press Enter with no input when done)"
+echo ""
+
+ADDITIONAL_IPS=()
+while true; do
+    read -p "Enter IP to whitelist (or press Enter to continue): " new_ip
+    
+    # If empty input, break the loop
+    if [ -z "$new_ip" ]; then
+        break
+    fi
+    
+    # Basic IP validation
+    if [[ $new_ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        # Check if IP is already in the list
+        if [[ " ${WHITELISTED_IPS[@]} " =~ " ${new_ip} " ]] || [[ " ${ADDITIONAL_IPS[@]} " =~ " ${new_ip} " ]]; then
+            echo -e "    ${YELLOW}[!] IP $new_ip is already whitelisted${NC}"
+        else
+            ADDITIONAL_IPS+=("$new_ip")
+            echo -e "    ${GREEN}[+] Added: $new_ip${NC}"
         fi
+    else
+        echo -e "    ${RED}[!] Invalid IP format, skipping...${NC}"
     fi
 done
 
-# Check for backdoor users
-echo -e "\n[+] Checking for backdoor users..."
-echo "Users with UID >= 1000:"
-awk -F: '$3 >= 1000 {print $1, $3, $7}' /etc/passwd
-read -p "Enter username to delete (or press Enter to skip): " del_user
-if [ -n "$del_user" ]; then
-    userdel -r "$del_user" 2>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "User $del_user deleted"
-        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Deleted user: $del_user" >> /root/activity_log.txt
-    else
-        echo "Failed to delete $del_user"
-    fi
-fi
-
-# Remove web shells
-echo -e "\n[+] Searching for web shells in /var/www..."
-if [ -d /var/www ]; then
-    find /var/www -name "*.php" -type f -exec grep -l "eval\|base64_decode\|system\|exec\|shell_exec" {} \; 2>/dev/null | while read file; do
-        echo "Suspicious file: $file"
-        read -p "Delete $file? (y/N): " del_file
-        if [ "$del_file" == "y" ]; then
-            rm "$file"
-            echo "$(TZ='America/New_York' date) $(basename \"$0\") - Deleted suspicious web shell: $file" >> /root/activity_log.txt
-            echo "Deleted: $file"
-        fi
+# Merge additional IPs into whitelist
+if [ ${#ADDITIONAL_IPS[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${GREEN}[+] Added ${#ADDITIONAL_IPS[@]} new IP(s) to whitelist${NC}"
+    WHITELISTED_IPS+=("${ADDITIONAL_IPS[@]}")
+    
+    # Save updated whitelist to file
+    echo "# Updated whitelist - $(date)" > /root/firewall_whitelist.txt
+    for ip in "${WHITELISTED_IPS[@]}"; do
+        echo "$ip" >> /root/firewall_whitelist.txt
     done
+    echo -e "${GREEN}[+] Whitelist saved to /root/firewall_whitelist.txt${NC}"
+else
+    echo -e "${YELLOW}[*] No additional IPs added${NC}"
 fi
 
-# Check for suspicious startup scripts
-echo -e "\n[+] Checking startup scripts..."
-systemctl list-unit-files --type=service | grep enabled | grep -v "^systemd\|^dbus\|^getty"
+echo ""
+echo -e "${YELLOW}Final whitelist:${NC}"
+for ip in "${WHITELISTED_IPS[@]}"; do
+    echo "  - $ip"
+done
+echo ""
 
-# Remove suspicious kernel modules
-echo -e "\n[+] Current kernel modules:"
-lsmod | head -20
-read -p "Enter module name to remove (or press Enter to skip): " rmmod_name
-if [ -n "$rmmod_name" ]; then
-    rmmod "$rmmod_name" 2>/dev/null
-    if [ $? -eq 0 ]; then
-        echo "Module $rmmod_name removed"
-        echo "$(TZ='America/New_York' date) $(basename \"$0\") - Removed kernel module: $rmmod_name" >> /root/activity_log.txt
-    else
-        echo "Failed to remove $rmmod_name"
+# Confirm before blocking
+read -p "Proceed with firewall lockdown? (y/n): " confirm
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Aborted."
+    exit 0
+fi
+
+# Duration in seconds to keep the firewall rules active
+echo ""
+read -p "Enter block duration in seconds (default 30, press Enter for default): " duration_input
+BLOCK_DURATION=${duration_input:-30}
+
+echo ""
+echo "========================================="
+echo "ACTIVATING EMERGENCY FIREWALL BLOCK"
+echo "Duration: $BLOCK_DURATION seconds"
+echo "========================================="
+
+# --- Firewall Setup (UFW) ---
+echo -e "${RED}[+] Resetting ufw to a clean state...${NC}"
+ufw --force reset
+echo "$(TZ='America/New_York' date) $(basename "$0") - Firewall reset to clean state (emergency block)" >> /root/activity_log.txt
+
+echo -e "${RED}[+] Setting default policies to DENY...${NC}"
+ufw default deny incoming
+echo "$(TZ='America/New_York' date) $(basename "$0") - Set default firewall policy to deny incoming (emergency)" >> /root/activity_log.txt
+ufw default deny outgoing
+echo "$(TZ='America/New_York' date) $(basename "$0") - Set default firewall policy to deny outgoing (emergency)" >> /root/activity_log.txt
+
+echo -e "${GREEN}[+] Allowing loopback traffic...${NC}"
+ufw allow in on lo
+echo "$(TZ='America/New_York' date) $(basename "$0") - Allowed incoming loopback traffic" >> /root/activity_log.txt
+ufw allow out on lo
+echo "$(TZ='America/New_York' date) $(basename "$0") - Allowed outgoing loopback traffic" >> /root/activity_log.txt
+
+echo -e "${GREEN}[+] Whitelisting team IP addresses...${NC}"
+for ip in "${WHITELISTED_IPS[@]}"; do
+    echo "    - Allowing all traffic from/to $ip"
+    ufw allow from "$ip"
+    echo "$(TZ='America/New_York' date) $(basename "$0") - Whitelisted IP for all traffic: $ip" >> /root/activity_log.txt
+    ufw allow to "$ip"
+    echo "$(TZ='America/New_York' date) $(basename "$0") - Whitelisted outgoing to IP: $ip" >> /root/activity_log.txt
+done
+
+echo -e "${RED}[+] Enabling firewall...${NC}"
+ufw --force enable
+echo "$(TZ='America/New_York' date) $(basename "$0") - Firewall enabled with emergency block (${#WHITELISTED_IPS[@]} IPs whitelisted)" >> /root/activity_log.txt
+
+echo ""
+echo "========================================="
+echo -e "${RED}[!] FIREWALL IS NOW IN LOCKDOWN MODE${NC}"
+echo "    All non-whitelisted traffic is BLOCKED"
+echo "    Whitelisted IPs: ${#WHITELISTED_IPS[@]}"
+echo "    This will auto-revert in $BLOCK_DURATION seconds"
+echo "    Revert time: $(date -d "+$BLOCK_DURATION seconds")"
+echo "========================================="
+echo ""
+echo -e "${YELLOW}Press Ctrl+C to cancel auto-revert (firewall will stay locked)${NC}"
+echo ""
+
+# Countdown timer
+for ((i=BLOCK_DURATION; i>0; i--)); do
+    if [ $i -le 10 ] || [ $((i % 10)) -eq 0 ]; then
+        echo "    Time remaining: ${i}s"
     fi
-fi
+    sleep 1
+done
 
-echo -e "\n=== BACKDOOR REMOVAL COMPLETE ==="
+# --- Firewall Teardown (UFW) ---
+echo ""
+echo "========================================="
+echo -e "${GREEN}[+] Block duration expired - reverting firewall...${NC}"
+echo "========================================="
 
-} | tee "$LOG"
+ufw disable
+echo "$(TZ='America/New_York' date) $(basename "$0") - Firewall disabled after emergency block duration" >> /root/activity_log.txt
 
-echo "Log saved to: $LOG"
+ufw --force reset
+echo "$(TZ='America/New_York' date) $(basename "$0") - All firewall rules reset after emergency block" >> /root/activity_log.txt
 
+echo -e "${GREEN}[+] Firewall has been disabled and reset.${NC}"
+echo -e "${GREEN}[+] Normal connectivity restored.${NC}"
+echo ""
+echo "To re-enable normal security firewall, run: sudo ./02_quick_harden.sh"
