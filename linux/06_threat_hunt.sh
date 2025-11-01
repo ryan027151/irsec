@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 if [ "$EUID" -ne 0 ]; then
@@ -6,11 +5,17 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-OUTPUT="threat_hunt_$(date +%Y%m%d_%H%M%S).txt"
+OUTPUT="/root/threat_hunt_$(date +%Y%m%d_%H%M%S).txt"
+WAZUH_LOG="/var/ossec/logs/active-responses.log"
 
 echo "========================================="
 echo "THREAT HUNTING - $(date)"
 echo "========================================="
+
+# Log to Wazuh if available
+if [ -f "$WAZUH_LOG" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Manual threat hunt initiated" >> "$WAZUH_LOG"
+fi
 
 {
 echo "=== THREAT HUNT REPORT ==="
@@ -136,12 +141,29 @@ echo "THREAT HUNT COMPLETE"
 echo "Report saved to: $OUTPUT"
 echo "========================================="
 
-WEB_SHELLS=$(grep -c "web shell\|eval\|base64_decode" "$OUTPUT" 2>/dev/null || echo "0")
-SUSPICIOUS_PROCS=$(grep -c "nc\|ncat\|netcat\|/bin/sh -i" "$OUTPUT" 2>/dev/null || echo "0")
+# Calculate summary statistics
+WEB_SHELLS=$(grep -c "eval\|base64_decode" "$OUTPUT" 2>/dev/null || echo "0")
+SUSPICIOUS_PROCS=$(ps aux | grep -E 'nc|ncat|netcat|/bin/sh -i|/bin/bash -i' | grep -v grep | wc -l)
+UNUSUAL_CONNECTIONS=$(ss -tupn | grep ESTAB | grep -v ":22\|:80\|:443\|:53" | wc -l)
+SUID_FILES=$(find / -perm -4000 -type f 2>/dev/null | grep -v "/bin/\|/usr/bin/\|/sbin/\|/usr/sbin/" | wc -l)
 
 echo ""
 echo "=== SUMMARY ==="
-echo "Potential web shells: $WEB_SHELLS"
+echo "Potential web shell indicators: $WEB_SHELLS"
 echo "Suspicious processes: $SUSPICIOUS_PROCS"
+echo "Unusual network connections: $UNUSUAL_CONNECTIONS"
+echo "Unusual SUID binaries: $SUID_FILES"
 echo ""
 
+# Log summary to Wazuh if available
+if [ -f "$WAZUH_LOG" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Threat hunt complete - Web shells: $WEB_SHELLS, Suspicious procs: $SUSPICIOUS_PROCS, Unusual connections: $UNUSUAL_CONNECTIONS" >> "$WAZUH_LOG"
+fi
+
+# Alert if critical findings
+if [ "$SUSPICIOUS_PROCS" -gt 0 ] || [ "$WEB_SHELLS" -gt 5 ]; then
+    echo "[!] CRITICAL FINDINGS DETECTED - Review $OUTPUT immediately!"
+    if [ -f "$WAZUH_LOG" ]; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S'): CRITICAL - Threat hunt found suspicious activity!" >> "$WAZUH_LOG"
+    fi
+fi
