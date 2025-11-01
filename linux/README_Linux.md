@@ -94,7 +94,7 @@ sudo ./05_monitor.sh &
 jobs
 
 # Run initial threat hunt
-sudo ./06_threat_hunt.sh
+sudo ./auto_threat_hunt.sh
 ```
 
 ### Ubuntu (Wazuh Server)
@@ -284,7 +284,7 @@ Add email configuration:
 sudo ./05_monitor.sh &
 
 # Run initial threat hunt
-sudo ./06_threat_hunt.sh
+sudo ./auto_threat_hunt.sh
 
 # Verify threat hunt results
 sudo ls -la /root/threat_hunt_*.txt
@@ -541,13 +541,6 @@ sudo crontab -u <user> -e   # For specific user
 
 ## Team Assignments
 
-| Person | Machine | Primary Responsibilities |
-|--------|---------|--------------------------|
-| Person 1 | Windows DC | AD security, user management, GPO hardening |
-| Person 2 | Windows App | Application security, IIS/services hardening |
-| Person 3 | Fedora MySQL | Database security, SQL injection monitoring |
-| Person 4 | Ubuntu Wazuh | **SIEM monitoring, coordinate team response, central logging** |
-
 **Person 4 (Wazuh Operator) Should:**
 - Keep Wazuh dashboard open at all times
 - Alert team immediately on Level 12+ alerts
@@ -586,7 +579,7 @@ sudo ufw allow 22
 sudo ss -tlnp | grep :22
 ```
 
-### Script has no output
+### When Script has no output
 - Check if file is empty: `cat script.sh`
 - Remove markdown backticks if present (```bash)
 - Ensure shebang is `#!/bin/bash` not `#!/bin/sh`
@@ -700,43 +693,14 @@ echo '{"parameters":{"alert":{"id":"12345","rule":{"level":"12"}}}}' | sudo /var
 - [ ] Emergency contacts saved
 
 ---
-
-## Competition Strategy
-
 ### Time Allocation
 - **0-5 min:** Initial hardening (firewall, SSH, passwords)
 - **5-10 min:** Service-specific hardening (MySQL, Wazuh setup)
 - **10-15 min:** Verify all systems, test connectivity
 - **15+ min:** Continuous monitoring and threat hunting
-
-### Response Priority
-1. **Critical (Level 15):** Drop everything, investigate immediately
-2. **High (Level 12-14):** Investigate within 5 minutes
-3. **Medium (Level 8-11):** Review during next threat hunt cycle
-4. **Low (Level 1-7):** Review at end of competition if time permits
-
-### Team Communication
-- **Wazuh operator** is the central point - alerts entire team on critical findings
-- Use short, clear messages: "Fedora - SSH brute force - IP 10.x.x.x - investigating"
-- Document everything in incident logs
-- Share passwords/credentials securely (not in plain text chat)
-
-### Winning Mindset
-- **Speed matters:** First 15 minutes are critical
-- **Documentation matters:** Log all incidents for scoring
-- **Persistence matters:** Attackers will try multiple times
-- **Communication matters:** Keep team informed
-- **Wazuh is your superpower:** Use it aggressively
-
 ---
-
 ## Additional Resources
-
 - **Wazuh Documentation:** https://documentation.wazuh.com/
 - **Linux Hardening Guide:** https://madaidans-insecurities.github.io/guides/linux-hardening.html
 - **NIST Cybersecurity Framework:** https://www.nist.gov/cyberframework
-
----
-
-**Good luck! Remember: The team that communicates best and uses Wazuh most effectively usually wins! 🏆**
 ```

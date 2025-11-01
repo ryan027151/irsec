@@ -106,6 +106,7 @@ notepad config.ps1
 # Run as Administrator
 .\0-MASTER-CCDC-Response.ps1
 ```
+##REMEMBER TO TURN TO LOCAL USER FIRST AND USE PASSWORD (IF NOT LOCAL USER ALREADY)
 
 This will:
 1. Collect incident response data
