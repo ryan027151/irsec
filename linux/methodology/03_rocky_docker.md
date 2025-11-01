@@ -34,3 +34,10 @@ CustomLog "logs/access_log" combined
 ```bash
 docker restart <container_id>
 ```
+
+- [ ] Disable directory listing
+    - Remove the line from httpd.conf that looks like the following
+
+```apache
+Options Includes Indexes FollowSymLinks MultiViews
+```
